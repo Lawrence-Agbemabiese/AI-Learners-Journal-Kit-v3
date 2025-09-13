@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+# AI Journal CLI Wrapper v3.0 - With AI Integration
+# Provides: new, append, list, search, open, ask
+
+set -euo pipefail
+
+JOURNAL_DIR="$HOME/AI-Journal"
+SCRIPTS_DIR="$JOURNAL_DIR/scripts"
+PYTHON_BIN="python3"
+
+usage() {
+  cat <<EOF
+AI Journal CLI v3.0 - The Connoisseur's AI Learning Companion
+
+Usage:
+  ai-journal new "<topic>" [tags...]              # Create new entry
+  ai-journal ask "<question>" [options]           # Query AI with curation
+  ai-journal append <id|topic|slug|latest> "<content>" [section]
+  ai-journal list [--limit N]                     # List entries
+  ai-journal search "<query>"                     # Search entries
+  ai-journal open <id|topic|slug|latest>          # Open entry
+  ai-journal compare "<topic>" [--sources ai1,ai2] # Compare AI sources
+
+Ask Command Options:
+  --source <ai>        AI source: chatgpt, claude, gemini (default: chatgpt)
+  --compare <sources>  Compare multiple AIs: --compare chatgpt,claude,gemini
+  --guided             Beginner mode with extra prompts
+  --expert             Expert mode with minimal prompts
+  --topic <category>   Topic category for risk assessment
+
+Examples:
+  ai-journal new "Docker Learning" docker containers
+  ai-journal ask "What is React useEffect?" --source chatgpt
+  ai-journal ask "How to secure JWT?" --topic security --guided
+  ai-journal ask "Explain closures" --compare chatgpt,claude
+  ai-journal append latest "Tested this approach - works great!"
+
+Interactive Curation Commands (used during AI responses):
+  /save     - Save response to journal
+  /edit     - Edit response before saving
+  /compare  - Get another AI's perspective  
+  /verify   - Add verification notes
+  /reflect  - Add critical thinking reflection
+  /discard  - Don't save this response
+  /merge    - Combine with other responses (multi-source mode)
+  /rate     - Rate response quality
+EOF
+}
+
+require_index() {
+  if [ ! -f "$JOURNAL_DIR/index.json" ]; then
+    echo "No journal found at $JOURNAL_DIR. Create one with: ai-journal new \"<topic>\"" >&2
+    exit 1
+  fi
+}
+
+cmd_new() {
+  if [ $# -lt 1 ]; then
+    echo "Usage: ai-journal new \"<topic>\" [tags...]" >&2
+    exit 1
+  fi
+  local topic="$1"; shift || true
+  "$PYTHON_BIN" "$SCRIPTS_DIR/entry_saver.py" "$topic" "$@"
+}
+
+cmd_ask() {
+  if [ $# -lt 1 ]; then
+    echo "Usage: ai-journal ask \"<question>\" [options]" >&2
+    echo "Try: ai-journal ask \"What is Docker?\" --source chatgpt" >&2
+    exit 1
+  fi
+  
+  local question="$1"; shift || true
+  
+  # Check if AI integration script exists
+  if [ ! -f "$SCRIPTS_DIR/ai_integration.py" ]; then
+    echo "⚠️  AI integration not available. Please update your AI Journal Kit." >&2
+    echo "For now, you can create an entry and add AI responses manually:" >&2
+    echo "  ai-journal new \"$question\" question" >&2
+    exit 1
+  fi
+  
+  "$PYTHON_BIN" "$SCRIPTS_DIR/ai_integration.py" "$question" "$@"
+}
+
+cmd_compare() {
+  if [ $# -lt 1 ]; then
+    echo "Usage: ai-journal compare \"<topic>\" [--sources ai1,ai2,ai3]" >&2
+    exit 1
+  fi
+  
+  local topic="$1"; shift || true
+  cmd_ask "$topic" --compare chatgpt,claude,gemini "$@"
+}
+
+cmd_append() {
+  require_index
+  if [ $# -lt 2 ]; then
+    echo "Usage: ai-journal append <id|topic|slug|latest> \"<content>\" [section]" >&2
+    exit 1
+  fi
+  local target="$1"; shift
+  local content="$1"; shift || true
+  local section="${1:-Q&A}"
+  "$PYTHON_BIN" "$SCRIPTS_DIR/auto_append.py" "$target" "$content" "$section"
+}
+
+cmd_list() {
+  require_index
+  local limit=0
+  if [ "${1:-}" = "--limit" ]; then
+    limit="${2:-0}"; shift 2 || true
+  fi
+  "$PYTHON_BIN" - "$JOURNAL_DIR" <<'PY'
+import json, sys
+from pathlib import Path
+
+journal_dir = Path(sys.argv[1])
+index = json.loads(Path(journal_dir/"index.json").read_text())
+limit = int(sys.stdin.readline().strip() or 0) if not sys.stdin.isatty() else 0
+entries = sorted(index["entries"], key=lambda e: e["created"], reverse=True)
+if limit > 0:
+    entries = entries[:limit]
+for e in entries:
+    # Add AI source info if available
+    ai_info = ""
+    if "ai_sources" in e and e["ai_sources"]:
+        sources = ", ".join(e["ai_sources"])
+        ai_info = f" | AI: {sources}"
+    quality_info = ""
+    if "quality_rating" in e and e["quality_rating"]:
+        quality_info = f" | ★{e['quality_rating']}/5"
+    print(f"{e['id']:>3} | {e['created'][:10]} | {e['topic']}{ai_info}{quality_info} | tags: {', '.join(e['tags']) if e['tags'] else 'untagged'}")
+PY
+  # pass limit via stdin if provided
+  if [ "$limit" -gt 0 ]; then
+    echo "$limit" | true
+  fi
+}
+
+cmd_search() {
+  require_index
+  if [ $# -lt 1 ]; then
+    echo "Usage: ai-journal search \"<query>\"" >&2
+    exit 1
+  fi
+  local query="$1"
+  "$PYTHON_BIN" - "$JOURNAL_DIR" "$query" <<'PY'
+import json, sys
+from pathlib import Path
+
+_, jdir, q = sys.argv
+idx = json.loads(Path(jdir, 'index.json').read_text())
+q = q.lower()
+matches = [e for e in idx['entries'] if q in e['topic'].lower() or any(q in t.lower() for t in e['tags'])]
+for e in sorted(matches, key=lambda e: e['created'], reverse=True):
+    ai_info = ""
+    if "ai_sources" in e and e["ai_sources"]:
+        sources = ", ".join(e["ai_sources"])
+        ai_info = f" | AI: {sources}"
+    quality_info = ""
+    if "quality_rating" in e and e["quality_rating"]:
+        quality_info = f" | ★{e['quality_rating']}/5"
+    print(f"{e['id']:>3} | {e['created'][:10]} | {e['topic']}{ai_info}{quality_info} | tags: {', '.join(e['tags']) if e['tags'] else 'untagged'}")
+if not matches:
+    print("No matches found.")
+PY
+}
+
+cmd_open() {
+  require_index
+  if [ $# -lt 1 ]; then
+    echo "Usage: ai-journal open <id|topic|slug|latest>" >&2
+    exit 1
+  fi
+  local target="$1"
+  "$PYTHON_BIN" - "$JOURNAL_DIR" "$target" <<'PY'
+import json, sys
+from pathlib import Path
+
+_, jdir, target = sys.argv
+idx = json.loads(Path(jdir,'index.json').read_text())
+entry = None
+# try id
+try:
+    tid = int(target)
+    entry = next((e for e in idx['entries'] if e['id']==tid), None)
+except:
+    pass
+if entry is None and target.lower()=="latest":
+    entry = max(idx['entries'], key=lambda e: e['created']) if idx['entries'] else None
+if entry is None:
+    # slug or topic match
+    entry = next((e for e in idx['entries'] if e['slug']==target.lower()), None)
+if entry is None:
+    entry = next((e for e in idx['entries'] if e['topic'].lower()==target.lower()), None)
+if entry is None:
+    print("No such entry.")
+    sys.exit(1)
+print(str(Path(jdir)/entry['filename']))
+PY
+}
+
+main() {
+  local cmd="${1:-}"; shift || true
+  case "$cmd" in
+    new) cmd_new "$@" ;;
+    ask) cmd_ask "$@" ;;
+    compare) cmd_compare "$@" ;;
+    append) cmd_append "$@" ;;
+    list) cmd_list "$@" ;;
+    search) cmd_search "$@" ;;
+    open)
+      path=$(cmd_open "$@") || exit 1
+      if [ -n "$path" ]; then
+        open "$path"
+      fi
+      ;;
+    -h|--help|help|"") usage ;;
+    *) echo "Unknown command: $cmd" >&2; usage ;;
+  esac
+}
+
+main "$@"

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learner's Journal Kit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            width: 1280px;
+            height: 720px;
+            display: flex;
+            background: white;
+        }
+        
+        .left-panel {
+            width: 50%;
+            background: linear-gradient(135deg, #4A90E2 0%, #F8FAFC 100%);
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .right-panel {
+            width: 50%;
+            background: white;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .title {
+            font-size: 56px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            font-size: 24px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 40px;
+        }
+        
+        .prompt-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .prompt-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2D3748;
+            margin-bottom: 15px;
+        }
+        
+        .prompt-text {
+            font-size: 18px;
+            color: #4A5568;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .answer {
+            background: #1A202C;
+            color: #E2E8F0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        
+        .answer-label {
+            color: #68D391;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .qa-section {
+            margin-bottom: 35px;
+        }
+        
+        .question {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2D3748;
+            margin-bottom: 15px;
+        }
+        
+        .answer-text {
+            font-size: 19px;
+            color: #4A5568;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        
+        .bullet-points {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .bullet-points li {
+            font-size: 18px;
+            color: #4A5568;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .code {
+            font-family: 'SF Mono', 'Monaco', monospace;
+            background: #F7FAFC;
+            color: #2D3748;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 17px;
+        }
+        
+        .example {
+            background: #F7FAFC;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 17px;
+            color: #2D3748;
+            margin-top: 10px;
+        }
+        
+        .analogy {
+            background: #FFF5F5;
+            border-left: 4px solid #F56565;
+            padding: 15px;
+            margin-top: 12px;
+            font-style: italic;
+            color: #4A5568;
+            border-radius: 0 6px 6px 0;
+            font-size: 17px;
+        }
+    </style>
+</head>
+<body>
+    <div class="left-panel">
+        <h1 class="title">AI Learner's Journal Kit</h1>
+        <p class="subtitle">Sample Learning Session - Tailored to Your Learning Goals</p>
+        
+        <div class="prompt-section">
+            <div class="prompt-title">User's Initial Prompt:</div>
+            <div class="prompt-text">"Give me the command on Terminal to find every copy of Warp on my computer and show me the full paths."</div>
+            
+            <div class="answer">
+                <div class="answer-label">A:</div>
+                <code>ls -ld /Applications/Warp.app ~/Applications/Warp.app 2>/dev/null</code>
+            </div>
+        </div>
+    </div>
+    
+    <div class="right-panel">
+        <div class="qa-section">
+            <div class="question">Q: What does 2>/dev/null mean?</div>
+            <div class="answer-text"><strong>A:</strong> It hides error messages.</div>
+            
+            <ul class="bullet-points">
+                <li><span class="code">2</span> - refers to stderr (error output stream)</li>
+                <li><span class="code">></span> - redirects output to a file or location</li>
+                <li><span class="code">/dev/null</span> - a special "black hole" that discards everything</li>
+            </ul>
+            
+            <div class="example">
+                Example: ls nonexistent_file 2>/dev/null
+                (No error message shown if file doesn't exist)
+            </div>
+        </div>
+        
+        <div class="qa-section">
+            <div class="question">Q: What about >/dev/null 2>&1 or &>/dev/null?</div>
+            <div class="answer-text"><strong>A:</strong> These hide everything - both output and errors.</div>
+            
+            <div class="analogy">
+                <strong>Analogy:</strong> Like throwing away both the food and the complaints at a restaurant - nothing gets through to bother you. The kitchen could be on fire, but you won't hear about it!
+            </div>
+        </div>
+    </div>
+</body>
+</html>
