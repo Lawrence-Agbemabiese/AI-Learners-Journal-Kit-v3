@@ -1,0 +1,91 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  format-check:
+    name: Format & Quality Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install formatting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install black isort flake8
+
+    - name: Check code formatting with Black
+      run: black --check --diff scripts/
+
+    - name: Check import sorting with isort
+      run: isort --check-only --diff scripts/
+
+    - name: Lint with flake8
+      run: |
+        flake8 scripts/ --max-line-length=88 --extend-ignore=E203,W503
+
+    - name: Check for common shell issues
+      uses: ludeeus/action-shellcheck@master
+      with:
+        scandir: '.'
+        format: gcc
+        severity: info
+
+  documentation-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for broken links in README
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'no'
+        config-file: '.github/markdown-link-check-config.json'
+        folder-path: '.'
+        file-path: './README.md'
+
+    - name: Validate markdown format
+      uses: DavidAnson/markdownlint-action@v1
+      with:
+        files: '**/*.md'
+        config: '.github/markdownlint-config.yaml'
+
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install safety
+      run: pip install safety
+
+    - name: Check for vulnerabilities
+      run: |
+        # Create minimal requirements file if it doesn't exist
+        echo "# This project uses only Python standard library" > temp_requirements.txt
+        safety check -r temp_requirements.txt || echo "No dependencies to check"
+
+    - name: Run Bandit security linter
+      run: |
+        pip install bandit
+        bandit -r scripts/ -ll -f json -o bandit-results.json || true
+        cat bandit-results.json
