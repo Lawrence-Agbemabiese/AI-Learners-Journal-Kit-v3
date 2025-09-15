@@ -1,5 +1,15 @@
 # 📘 AI Learner's Journal Kit v3.0
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Learning Resources](#learning-resources)
+- [Contributing](#contributing)
+- [License](#license)
+
+
 [![GitHub Release](https://img.shields.io/github/v/release/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3?label=Latest%20Release)](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform Support](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3)
@@ -314,3 +324,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Repository**: [AI-Learners-Journal-Kit-v3](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3)
 
 🚀 **Happy Learning! Transform your AI conversations into lasting knowledge.**
+
+## Learning Resources
+
+- **Optional Reading → Command Line Basics:** See the curated, beginner-friendly set of four text tutorials to build core shell skills.  
+  → `./OPTIONAL_READING_command-line.md`
+
+> Use these alongside your Journal prompts: capture patterns you’ll reuse, not one-off commands.
