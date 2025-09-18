@@ -13,7 +13,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3?label=Latest%20Release)](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform Support](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3)
-[![Python 3.6+](https://img.shields.io/badge/Python-3.6%2B-green)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-green)](https://www.python.org/downloads/)
 
 > **Transform your AI conversations into a permanent, searchable knowledge base**
 
@@ -204,7 +204,7 @@ bind-key j run-shell "read -p 'Journal: ' note && ai-journal append latest \"$no
 
 ## 📊 **Technical Specifications**
 
-- **Languages**: Python 3.6+, Bash
+- **Languages**: Python 3.9+, Bash
 - **Dependencies**: None (uses standard library only)
 - **File Format**: Markdown with YAML frontmatter
 - **Storage**: JSON index + organized file system
