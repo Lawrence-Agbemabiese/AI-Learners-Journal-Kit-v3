@@ -10,9 +10,9 @@ These four text-first tutorials are the cleanest on-ramps to the Unix shell/Bash
 
 ---
 
-## 2) The Odin Project — *Command Line Basics*
-**Link:** https://www.theodinproject.com/lessons/foundations-command-line-basics  
-**Why this:** A single, focused primer that demystifies moving around and manipulating files without drowning you in jargon—perfect for a one-sitting on-ramp.
+## 2) MDN Web Docs — *Command Line Crash Course*
+**Link:** https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Understanding_client-side_tools/Command_line
+**Why this:** A comprehensive, well-maintained guide to command line basics from Mozilla's excellent documentation team.
 
 ---
 
