@@ -61,6 +61,7 @@ jobs:
       uses: DavidAnson/markdownlint-cli2-action@v20
       with:
         globs: '**/*.md'
+        config: '.markdownlint.json'
 
   dependency-check:
     name: Dependency Security Check
@@ -86,5 +87,18 @@ jobs:
     - name: Run Bandit security linter
       run: |
         pip install bandit
-        bandit -r scripts/ -ll -f json -o bandit-results.json || true
+        # Run full scan for informational purposes
+        bandit -r scripts/ -f json -o bandit-results.json || true
+        echo "=== Full Bandit Results ==="
         cat bandit-results.json
+        echo ""
+        echo "=== Security Assessment ==="
+        # Only fail on medium/high severity issues
+        if bandit -r scripts/ --severity-level medium --exit-zero | grep -q "No issues identified"; then
+          echo "✅ No medium/high severity security issues found"
+          echo "ℹ️  Some low-severity warnings may exist but are acceptable for this use case"
+        else
+          echo "❌ Medium/High severity security issues found!"
+          bandit -r scripts/ --severity-level medium
+          exit 1
+        fi
