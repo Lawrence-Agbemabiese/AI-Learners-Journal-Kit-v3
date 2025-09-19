@@ -86,5 +86,28 @@ jobs:
     - name: Run Bandit security linter
       run: |
         pip install bandit
-        bandit -r scripts/ -ll -f json -o bandit-results.json || true
-        cat bandit-results.json
+        echo "=== Running Bandit Security Scan ==="
+        # Run scan for medium and high severity issues only
+        bandit -r scripts/ --severity-level medium -f json -o bandit-medium-high.json --exit-zero
+
+        # Check results
+        ISSUE_COUNT=$(python3 -c "
+        import json
+        try:
+            with open('bandit-medium-high.json', 'r') as f:
+                data = json.load(f)
+            print(len(data['results']))
+        except:
+            print('0')
+        ")
+
+        echo "Medium/High severity issues found: $ISSUE_COUNT"
+
+        if [ "$ISSUE_COUNT" -eq "0" ]; then
+          echo "✅ No medium/high severity security issues found"
+          echo "ℹ️ This project may have low-severity warnings which are acceptable"
+        else
+          echo "❌ Found $ISSUE_COUNT medium/high severity security issues!"
+          bandit -r scripts/ --severity-level medium
+          exit 1
+        fi
