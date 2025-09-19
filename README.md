@@ -2,12 +2,15 @@
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Usage](#usage)
+- [🚀 Quick Start](#-quick-start)
+- [✨ Key Features](#-key-features)
+- [📦 What's Included](#-whats-included)
+- [💡 Use Cases](#-use-cases-that-work-today)
+- [🔗 Workflow Integration](#-perfect-integration-with-your-workflow)
+- [📊 Technical Specifications](#-technical-specifications)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 - [Learning Resources](#learning-resources)
-- [Contributing](#contributing)
-- [License](#license)
 
 
 [![GitHub Release](https://img.shields.io/github/v/release/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3?label=Latest%20Release)](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3/releases)
@@ -26,14 +29,14 @@ The AI Learner's Journal Kit is a sophisticated command-line tool that captures,
 - [🚀 Quick Start](#-quick-start)
 - [✨ Key Features](#-key-features)
 - [📦 What's Included](#-whats-included)
-- [💡 Use Cases](#-use-cases)
-- [🔗 Workflow Integration](#-workflow-integration)
+- [💡 Use Cases](#-use-cases-that-work-today)
+- [🔗 Workflow Integration](#-perfect-integration-with-your-workflow)
 - [📊 Technical Specifications](#-technical-specifications)
-- [🎁 Advanced Features](#-advanced-features)
-- [📚 Documentation](#-documentation)
+- [🎁 Advanced Features](#-bonus-features)
+- [📚 Documentation](#-complete-documentation)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
-- [🛠️ Support](#️-support)
+- [🛠️ Support](#-support)
 
 ## 🚀 Quick Start
 
