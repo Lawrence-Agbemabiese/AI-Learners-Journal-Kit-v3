@@ -61,7 +61,7 @@ jobs:
       uses: DavidAnson/markdownlint-cli2-action@v20
       with:
         globs: '**/*.md'
-        config: '.github/markdownlint-config.yaml'
+        config: '.github/markdownlint-cli2.jsonc'
 
   dependency-check:
     name: Dependency Security Check
