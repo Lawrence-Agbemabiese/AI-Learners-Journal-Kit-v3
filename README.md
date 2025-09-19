@@ -252,9 +252,7 @@ bind-key j run-shell "read -p 'Journal: ' note && ai-journal append latest \"$no
 ## 📚 **Complete Documentation**
 
 - **`docs/Quick_Start.md`** — Get running in minutes
-- **`docs/Advanced_Usage.md`** — Power user features
-- **`docs/Integration_Guide.md`** — Connect with your tools
-- **`docs/Troubleshooting.md`** — Common issues and solutions
+- **`docs/Quick_Start_v3.md`** — Complete setup and usage guide
 
 ---
 
@@ -302,13 +300,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### 📚 Documentation
 - **[Quick Start Guide](docs/Quick_Start.md)** - Get running in minutes
-- **[Advanced Usage](docs/Advanced_Usage.md)** - Power user features  
-- **[Integration Guide](docs/Integration_Guide.md)** - Connect with your tools
-- **[Troubleshooting](docs/Troubleshooting.md)** - Common issues and solutions
+- **[Quick Start v3](docs/Quick_Start_v3.md)** - Complete setup and usage guide
 
 ### 💬 Getting Help
 - 🐛 [GitHub Issues](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3/issues) - Bug reports and feature requests
-- 💬 [Discussions](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3/discussions) - Questions and community help
 - 🐦 [Twitter](https://twitter.com/lawrence_agb) - Updates and tips
 
 ### 🎆 Acknowledgments

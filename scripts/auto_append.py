@@ -5,7 +5,6 @@ Appends content to existing journal entries or creates new ones.
 """
 
 import json
-import os
 import re
 import sys
 from datetime import datetime
@@ -199,7 +198,9 @@ def main():
     # Optionally open the entry
     if "--open" in sys.argv:
         entry_path = get_journal_dir() / entry["filename"]
-        os.system(f"open '{entry_path}'")
+        import subprocess
+
+        subprocess.run(["open", str(entry_path)], check=False)
 
 
 if __name__ == "__main__":

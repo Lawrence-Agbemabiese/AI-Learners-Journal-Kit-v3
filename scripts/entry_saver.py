@@ -5,7 +5,6 @@ Enhanced with AI integration metadata and connoisseurship features.
 """
 
 import json
-import os
 import re
 import sys
 from datetime import datetime
@@ -268,7 +267,9 @@ def main():
 
     # Optionally open the entry in default editor
     if "--open" in sys.argv:
-        os.system(f"open '{entry_path}'")
+        import subprocess
+
+        subprocess.run(["open", str(entry_path)], check=False)
 
 
 if __name__ == "__main__":

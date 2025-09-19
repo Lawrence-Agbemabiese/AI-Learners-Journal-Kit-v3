@@ -58,6 +58,7 @@ class AIIntegration:
                     config = json.load(f)
                     keys.update(config.get("api_keys", {}))
             except Exception:
+                # Config file exists but is invalid - continue without it
                 pass
 
         return keys
