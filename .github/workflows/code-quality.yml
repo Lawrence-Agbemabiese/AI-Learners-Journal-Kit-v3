@@ -58,9 +58,9 @@ jobs:
         file-path: './README.md'
 
     - name: Validate markdown format
-      uses: DavidAnson/markdownlint-action@v1
+      uses: DavidAnson/markdownlint-cli2-action@v20
       with:
-        files: '**/*.md'
+        globs: '**/*.md'
         config: '.github/markdownlint-config.yaml'
 
   dependency-check:
