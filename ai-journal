@@ -4,7 +4,14 @@
 set -euo pipefail
 
 JOURNAL_DIR="${AI_JOURNAL_DIR:-$HOME/AI-Journal}"
-SCRIPTS_DIR="${AI_JOURNAL_SCRIPTS_DIR:-$JOURNAL_DIR/scripts}"
+WRAPPER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -n "${AI_JOURNAL_SCRIPTS_DIR:-}" ]; then
+  SCRIPTS_DIR="$AI_JOURNAL_SCRIPTS_DIR"
+elif [ -f "$WRAPPER_DIR/scripts/journal_cli.py" ]; then
+  SCRIPTS_DIR="$WRAPPER_DIR/scripts"
+else
+  SCRIPTS_DIR="$JOURNAL_DIR/scripts"
+fi
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 exec "$PYTHON_BIN" "$SCRIPTS_DIR/journal_cli.py" "$@"
