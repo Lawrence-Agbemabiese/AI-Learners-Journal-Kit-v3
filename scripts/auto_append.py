@@ -5,6 +5,7 @@ Appends content to existing journal entries or creates new ones.
 """
 
 import json
+import os
 import re
 import sys
 from datetime import datetime
@@ -13,7 +14,7 @@ from pathlib import Path
 
 def get_journal_dir():
     """Get the AI Journal directory path."""
-    return Path.home() / "AI-Journal"
+    return Path(os.environ.get("AI_JOURNAL_DIR", Path.home() / "AI-Journal"))
 
 
 def load_index():
@@ -33,8 +34,11 @@ def save_index(index_data):
     """Save the journal index."""
     index_path = get_journal_dir() / "index.json"
     index_data["stats"]["last_modified"] = datetime.now().isoformat() + "Z"
-    with open(index_path, "w") as f:
+    tmp_path = index_path.with_suffix(".json.tmp")
+    with open(tmp_path, "w") as f:
         json.dump(index_data, f, indent=2)
+        f.write("\n")
+    tmp_path.replace(index_path)
 
 
 def find_entry(search_term):

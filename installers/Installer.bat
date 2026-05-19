@@ -74,10 +74,16 @@ if exist "%BUNDLE_DIR%\scripts\*.py" (
 REM Initialize index.json if it doesn't exist
 if not exist "%JOURNAL_DIR%\index.json" (
     echo { > "%JOURNAL_DIR%\index.json"
-    echo   "version": "1.0", >> "%JOURNAL_DIR%\index.json"
+    echo   "version": "3.0", >> "%JOURNAL_DIR%\index.json"
     echo   "created": "%date% %time%", >> "%JOURNAL_DIR%\index.json"
     echo   "entries": [], >> "%JOURNAL_DIR%\index.json"
     echo   "tags": {}, >> "%JOURNAL_DIR%\index.json"
+    echo   "next_id": 1, >> "%JOURNAL_DIR%\index.json"
+    echo   "ai_stats": { >> "%JOURNAL_DIR%\index.json"
+    echo     "total_ai_assisted": 0, >> "%JOURNAL_DIR%\index.json"
+    echo     "sources_used": {}, >> "%JOURNAL_DIR%\index.json"
+    echo     "avg_quality_rating": 0.0 >> "%JOURNAL_DIR%\index.json"
+    echo   }, >> "%JOURNAL_DIR%\index.json"
     echo   "stats": { >> "%JOURNAL_DIR%\index.json"
     echo     "total_entries": 0, >> "%JOURNAL_DIR%\index.json"
     echo     "last_modified": "%date% %time%" >> "%JOURNAL_DIR%\index.json"
@@ -88,7 +94,8 @@ if not exist "%JOURNAL_DIR%\index.json" (
 
 REM Create a batch wrapper for Windows
 echo @echo off > "%JOURNAL_DIR%\ai-journal.bat"
-echo python "%JOURNAL_DIR%\scripts\entry_saver.py" %%* >> "%JOURNAL_DIR%\ai-journal.bat"
+echo set "AI_JOURNAL_DIR=%%USERPROFILE%%\AI-Journal" >> "%JOURNAL_DIR%\ai-journal.bat"
+echo python "%JOURNAL_DIR%\scripts\journal_cli.py" %%* >> "%JOURNAL_DIR%\ai-journal.bat"
 
 REM Add to PATH (user environment variable)
 echo [32m[INFO][0m Adding AI Journal to your PATH...

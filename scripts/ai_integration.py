@@ -7,15 +7,10 @@ Implements the seamless AI learning workflow with connoisseurship features.
 import argparse
 import json
 import os
-import sys
 from pathlib import Path
 from typing import Dict, List
 
-import openai
-from entry_saver import create_entry, load_index, save_index
-
-# Import existing modules
-sys.path.append(str(Path(__file__).parent))
+from entry_saver import create_entry
 
 
 class AIResponse:
@@ -36,6 +31,7 @@ class AIIntegration:
 
     def __init__(self):
         self.api_keys = self._load_api_keys()
+        self.openai_model = os.getenv("AI_JOURNAL_OPENAI_MODEL", "gpt-4o-mini")
         self.responses: List[AIResponse] = []
 
     def _load_api_keys(self) -> Dict[str, str]:
@@ -73,10 +69,19 @@ class AIIntegration:
             )
 
         try:
+            try:
+                import openai
+            except ImportError:
+                return AIResponse(
+                    "OpenAI integration requires the optional 'openai' package. "
+                    "Install it with: python -m pip install -r requirements.txt",
+                    "error",
+                )
+
             client = openai.OpenAI(api_key=self.api_keys["openai"])
 
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",  # Use GPT-3.5 for cost efficiency
+                model=self.openai_model,
                 messages=[
                     {
                         "role": "system",
@@ -316,21 +321,14 @@ class AIIntegration:
 
         content = "\n".join(content_parts)
 
-        # Create entry
-        create_entry(question, content, tags)
-
-        # Update index with AI metadata
-        try:
-            index_data = load_index()
-            if index_data["entries"]:
-                latest_entry = index_data["entries"][-1]
-                latest_entry["ai_sources"] = [response.source]
-                latest_entry["quality_rating"] = response.quality_score
-                latest_entry["confidence"] = response.confidence
-                latest_entry["risk_level"] = response.risk_level
-                save_index(index_data)
-        except Exception:
-            pass  # Continue even if metadata update fails
+        ai_metadata = {
+            "source": response.source,
+            "quality_rating": response.quality_score,
+            "confidence": response.confidence,
+            "risk_level": response.risk_level,
+            "verification_status": response.verification_status,
+        }
+        create_entry(question, content, tags, ai_metadata=ai_metadata)
 
         print("✅ Saved to journal with AI metadata!")
 
@@ -425,8 +423,8 @@ def main():
 
     # Handle comparison mode
     if args.compare:
-        print("🔄 Multi-source comparison coming soon!")
-        print("For now, using single source mode.")
+        print("Multi-source comparison is not implemented yet.")
+        print("Use --source chatgpt for the currently supported API integration.")
 
     # Main AI query
     ai.ask_ai(args.question, args.source)

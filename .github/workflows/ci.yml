@@ -41,6 +41,11 @@ jobs:
         python --version
         python -c "import sys; print('Python executable:', sys.executable)"
 
+    - name: Install test dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements-dev.txt
+
     - name: Test script syntax (Unix)
       if: runner.os != 'Windows'
       run: |
@@ -48,26 +53,17 @@ jobs:
         bash -n ai-journal
         
         # Test Python scripts syntax
-        python -m py_compile scripts/entry_saver.py
-        python -m py_compile scripts/auto_append.py
-        
-        # Check if AI integration script exists and test syntax if it does
-        if [ -f scripts/ai_integration.py ]; then
-          python -m py_compile scripts/ai_integration.py
-        fi
+        python -m py_compile scripts/*.py
 
     - name: Test script syntax (Windows)
       if: runner.os == 'Windows'
       run: |
         # Test Python scripts syntax
-        python -m py_compile scripts/entry_saver.py
-        python -m py_compile scripts/auto_append.py
-        
-        # Check if AI integration script exists and test syntax if it does
-        if (Test-Path scripts/ai_integration.py) {
-          python -m py_compile scripts/ai_integration.py
-        }
+        Get-ChildItem scripts/*.py | ForEach-Object { python -m py_compile $_.FullName }
       shell: powershell
+
+    - name: Run behavioral tests
+      run: pytest -q
 
     - name: Test installation process (Unix)
       if: runner.os != 'Windows'
@@ -84,8 +80,8 @@ jobs:
         chmod +x ai-journal
         
         # Test basic functionality (dry run without actual installation)
-        export JOURNAL_DIR="$PWD/test-journal"
-        export SCRIPTS_DIR="$PWD/scripts"
+        export AI_JOURNAL_DIR="$PWD/test-journal"
+        export AI_JOURNAL_SCRIPTS_DIR="$PWD/scripts"
         
         # Test help command
         ./ai-journal --help
@@ -101,12 +97,13 @@ jobs:
         Copy-Item ../scripts . -Recurse
         
         # Test Python scripts can be executed
-        $env:JOURNAL_DIR = "$PWD/test-journal"
-        $env:SCRIPTS_DIR = "$PWD/scripts"
+        $env:AI_JOURNAL_DIR = "$PWD/test-journal"
+        $env:PYTHONPATH = "$PWD/scripts"
         
         # Test that scripts can be imported without errors
         python -c "import sys; sys.path.insert(0, 'scripts'); import entry_saver"
         python -c "import sys; sys.path.insert(0, 'scripts'); import auto_append"
+        python scripts/journal_cli.py --help
       shell: powershell
 
     - name: Validate documentation
@@ -137,7 +134,7 @@ jobs:
     - name: Install linting tools
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 black isort
+        pip install -r requirements-dev.txt
 
     - name: Lint Python code with flake8
       run: |
@@ -183,7 +180,7 @@ jobs:
     - name: Install security tools
       run: |
         python -m pip install --upgrade pip
-        pip install bandit safety
+        pip install -r requirements-dev.txt
 
     - name: Run bandit security scanner
       run: |
@@ -215,11 +212,7 @@ jobs:
 
     - name: Check for known security vulnerabilities
       run: |
-        # Create a requirements.txt for safety check if it doesn't exist
-        if [ ! -f requirements.txt ]; then
-          echo "# No external dependencies - using standard library only" > requirements.txt
-        fi
-        safety check -r requirements.txt || echo "No dependencies to check"
+        pip-audit -r requirements.txt
 
   release:
     name: Release

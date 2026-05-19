@@ -93,13 +93,14 @@ To use the new `ask` command with ChatGPT:
 1. **Get an OpenAI API key**: https://platform.openai.com/api-keys
 2. **Set environment variable:**
    ```bash
+   python3 -m pip install -r requirements.txt
    export OPENAI_API_KEY='your-api-key-here'
    ```
 
-**Or create a config file:**
+The default OpenAI model is `gpt-4o-mini`. You can override it:
+
 ```bash
-cp ~/.ai-journal-config.json.example ~/.ai-journal-config.json
-# Edit the file and add your API key
+export AI_JOURNAL_OPENAI_MODEL='gpt-4o-mini'
 ```
 
 ### Step 6: Test Your Installation
@@ -217,7 +218,7 @@ ai-journal ask "Top 5 opensource AI tools for SMEs?" --expert
 ## 📚 All Available Commands
 
 | Command | Purpose | Example |
-|---------|---------|---------|
+| ------- | ------- | ------- |
 | `ask` | **NEW** - Query AI with curation | `ai-journal ask "What is Docker?" --source chatgpt` |
 | `new` | Create manual entry | `ai-journal new "Topic" tag1 tag2` |
 | `append` | Add to existing entry | `ai-journal append latest "New insight"` |
@@ -243,7 +244,7 @@ You forgot quotes! Use: `ai-journal ask "Your question here"`
 
 ### AI integration not working:
 1. Check your API key: `echo $OPENAI_API_KEY`
-2. Install OpenAI library: `pip3 install openai --user`
+2. Install OpenAI library: `python3 -m pip install -r requirements.txt`
 3. Test with: `ai-journal ask "test" --source chatgpt`
 
 ### Security warning on macOS:

@@ -71,7 +71,7 @@ fi
 
 print_section "🔒 SECURITY SCAN"
 
-echo "Testing tools: bandit, safety"
+echo "Testing tools: bandit, pip-audit"
 echo ""
 
 # Test 3: Bandit Security Scanner
@@ -134,28 +134,42 @@ fi
 
 echo ""
 
-# Test 4: Safety Check (from dependency-check job)
-echo -e "${YELLOW}🔍 Running safety dependency check...${NC}"
+# Test 4: Dependency vulnerability check
+echo -e "${YELLOW}🔍 Running dependency vulnerability check...${NC}"
 if command_exists python3; then
-    if python3 -m pip list | grep -q safety; then
-        echo "Safety already installed"
+    if python3 -m pip list | grep -q pip-audit; then
+        echo "pip-audit already installed"
     else
-        echo "Installing safety..."
-        python3 -m pip install safety --user --quiet
+        echo "Installing pip-audit..."
+        python3 -m pip install pip-audit --user --quiet
     fi
 
-    # Create minimal requirements file like the workflow does
-    echo "# This project uses only Python standard library" > temp_requirements.txt
-
-    if safety check -r temp_requirements.txt; then
-        echo -e "${GREEN}✅ Safety dependency check passed${NC}"
+    if python3 -m pip_audit -r requirements.txt; then
+        echo -e "${GREEN}✅ Dependency vulnerability check passed${NC}"
     else
-        echo -e "${YELLOW}⚠️  Safety check had warnings (non-blocking)${NC}"
+        echo -e "${RED}❌ Dependency vulnerability check failed${NC}"
+        EXIT_CODE=1
     fi
-
-    rm -f temp_requirements.txt
 else
-    echo -e "${YELLOW}⚠️  Python3 not available, skipping safety${NC}"
+    echo -e "${YELLOW}⚠️  Python3 not available, skipping pip-audit${NC}"
+fi
+
+print_section "🧪 BEHAVIORAL TESTS"
+
+if command_exists python3; then
+    if ! python3 -m pytest --version >/dev/null 2>&1; then
+        echo "Installing pytest..."
+        python3 -m pip install pytest --user --quiet
+    fi
+
+    if python3 -m pytest -q; then
+        echo -e "${GREEN}✅ Behavioral tests passed${NC}"
+    else
+        echo -e "${RED}❌ Behavioral tests failed${NC}"
+        EXIT_CODE=1
+    fi
+else
+    echo -e "${YELLOW}⚠️  Python3 not available, skipping pytest${NC}"
 fi
 
 print_section "📊 RESULTS SUMMARY"

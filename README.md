@@ -22,7 +22,7 @@
 
 The AI Learner's Journal Kit is a sophisticated command-line tool that captures, organizes, and retrieves insights from your AI-assisted learning sessions. Turn ephemeral conversations into lasting knowledge with intelligent curation and powerful search capabilities.
 
-🎉 **What's New in v3.0**: Enhanced AI integration with multi-source comparison, quality rating system, and interactive curation commands!
+🎉 **What's New in v3.0**: Optional OpenAI integration, quality rating metadata, and interactive curation commands. Claude, Gemini, and multi-source comparison are planned features.
 
 ## 📋 Table of Contents
 
@@ -88,16 +88,16 @@ ai-journal new "My First Learning Session" learning
 ## ✨ Key Features
 
 ### 🤖 AI-Powered Learning Capture
-- **Multi-AI Integration**: Work with ChatGPT, Claude, Gemini, and more
+- **OpenAI Integration**: Query ChatGPT-compatible OpenAI models when `OPENAI_API_KEY` is configured
 - **Interactive Curation**: Built-in commands to save, edit, and verify responses
 - **Quality Rating System**: Rate and track the quality of AI responses
-- **Source Comparison**: Compare answers across multiple AI platforms
+- **Source Comparison**: Planned support for comparing answers across multiple AI platforms
 
 ### 📋 Smart Organization
 - **Intelligent Tagging**: Automatic and manual tagging with statistics
 - **Structured Entries**: Consistent format with metadata and timestamps
 - **Hierarchical Storage**: Year/month organized file structure
-- **Powerful Search**: Find entries by content, tags, or metadata
+- **Search**: Find entries by topic and tags
 
 ### 💻 Command-Line Excellence
 - **6 Core Commands**: `new`, `ask`, `append`, `list`, `search`, `open`
@@ -106,7 +106,7 @@ ai-journal new "My First Learning Session" learning
 - **Cross-Platform**: macOS, Linux, Windows support
 
 ### 🔍 Discovery & Retrieval
-- **Fuzzy Search**: Find entries even with partial matches
+- **Topic/Tag Search**: Find entries with partial topic or tag matches
 - **Tag-Based Filtering**: Organize and find by topic categories
 - **Recent Lists**: Quick access to latest entries
 - **Editor Integration**: Opens in your preferred text editor
@@ -114,7 +114,7 @@ ai-journal new "My First Learning Session" learning
 ## 📦 What's Included
 
 ### ✅ **Core System**
-- **`ai-journal`** — Main CLI tool with 5 commands (new, append, list, search, open)
+- **`ai-journal`** — Main CLI tool with 6 commands (new, ask, append, list, search, open)
 - **`scripts/entry_saver.py`** — Creates structured journal entries with metadata
 - **`scripts/auto_append.py`** — Adds content to existing entries intelligently
 
@@ -153,7 +153,7 @@ A: docker logs <container-id> still works even after container stops"
 
 ### **3. Powerful Search & Discovery**
 ```bash
-ai-journal search "docker"        # Find by content or tags
+ai-journal search "docker"        # Find by topic or tags
 ai-journal list --limit 10        # Recent entries
 ai-journal open latest            # Open in your default editor
 ```
@@ -187,10 +187,10 @@ ai-journal open latest            # Open in your default editor
 
 ## 🔗 **Perfect Integration with Your Workflow**
 
-### **Works with any AI Assistant:**
-- ChatGPT, Claude, Gemini, Copilot
-- Copy valuable Q&As directly into your journal
-- Builds a permanent knowledge asset
+### **Works with AI assistants two ways:**
+- Query OpenAI directly with `ai-journal ask` after installing `requirements.txt` and setting `OPENAI_API_KEY`
+- Copy valuable Q&As from Claude, Gemini, Copilot, or browser-based tools into your journal
+- Build a permanent knowledge asset from curated learning sessions
 
 ### **Shell Integration:**
 ```bash
@@ -208,8 +208,8 @@ bind-key j run-shell "read -p 'Journal: ' note && ai-journal append latest \"$no
 ## 📊 **Technical Specifications**
 
 - **Languages**: Python 3.9+, Bash
-- **Dependencies**: None (uses standard library only)
-- **File Format**: Markdown with YAML frontmatter
+- **Dependencies**: Core journal commands use the Python standard library; `ai-journal ask` requires `openai` from `requirements.txt`
+- **File Format**: Markdown with readable metadata
 - **Storage**: JSON index + organized file system
 - **Platform Support**: macOS, Linux, Windows (WSL)
 - **Editor Integration**: Opens in system default or any editor you prefer

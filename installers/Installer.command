@@ -133,10 +133,16 @@ fi
 if [ ! -f "$JOURNAL_DIR/index.json" ]; then
     cat > "$JOURNAL_DIR/index.json" << EOF
 {
-  "version": "1.0",
+  "version": "3.0",
   "created": "$(date -Iseconds)",
   "entries": [],
   "tags": {},
+  "next_id": 1,
+  "ai_stats": {
+    "total_ai_assisted": 0,
+    "sources_used": {},
+    "avg_quality_rating": 0.0
+  },
   "stats": {
     "total_entries": 0,
     "last_modified": "$(date -Iseconds)"
@@ -144,6 +150,11 @@ if [ ! -f "$JOURNAL_DIR/index.json" ]; then
 }
 EOF
     print_success "Created journal index file"
+fi
+
+if [ -f "$BUNDLE_DIR/requirements.txt" ]; then
+    print_status "Optional AI dependency file found at $BUNDLE_DIR/requirements.txt"
+    print_status "Install it later with: python3 -m pip install -r \"$BUNDLE_DIR/requirements.txt\""
 fi
 
 # Test the installation

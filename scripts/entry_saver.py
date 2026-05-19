@@ -5,6 +5,7 @@ Enhanced with AI integration metadata and connoisseurship features.
 """
 
 import json
+import os
 import re
 import sys
 from datetime import datetime
@@ -13,7 +14,7 @@ from pathlib import Path
 
 def get_journal_dir():
     """Get the AI Journal directory path."""
-    return Path.home() / "AI-Journal"
+    return Path(os.environ.get("AI_JOURNAL_DIR", Path.home() / "AI-Journal"))
 
 
 def load_index():
@@ -46,9 +47,13 @@ def load_index():
 def save_index(index_data):
     """Save the journal index."""
     index_path = get_journal_dir() / "index.json"
+    index_path.parent.mkdir(parents=True, exist_ok=True)
     index_data["stats"]["last_modified"] = datetime.now().isoformat() + "Z"
-    with open(index_path, "w") as f:
+    tmp_path = index_path.with_suffix(".json.tmp")
+    with open(tmp_path, "w") as f:
         json.dump(index_data, f, indent=2)
+        f.write("\n")
+    tmp_path.replace(index_path)
 
 
 def create_slug(topic):
@@ -176,8 +181,13 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
     # Update index with enhanced metadata
     index_data = load_index()
 
+    next_id = index_data.get("next_id")
+    if next_id is None:
+        existing_ids = [entry.get("id", 0) for entry in index_data["entries"]]
+        next_id = max(existing_ids, default=0) + 1
+
     entry_record = {
-        "id": len(index_data["entries"]) + 1,
+        "id": next_id,
         "topic": topic,
         "slug": slug,
         "filename": str(entry_path.relative_to(get_journal_dir())),
@@ -185,6 +195,7 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
         "tags": tags,
         "word_count": len(entry_content.split()),
     }
+    index_data["next_id"] = next_id + 1
 
     # Add AI metadata to entry record
     if ai_metadata:
