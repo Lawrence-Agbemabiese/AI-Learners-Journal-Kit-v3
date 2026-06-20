@@ -1,29 +1,66 @@
 # AI Learner's Journal Kit v3.0 Quick Start
 
-This guide covers the features currently implemented in v3.0.
+For the easiest path, use the beginner menu instead of direct terminal commands.
 
 ## Install
 
-### macOS or Linux
+### macOS
 
-```bash
-git clone https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3.git
-cd AI-Learners-Journal-Kit-v3
-chmod +x installers/install_ai_journal_v3.sh
-./installers/install_ai_journal_v3.sh
+Double-click `installers/Installer.command`, then open:
+
+```text
+~/AI-Journal/Start AI Journal.command
 ```
-
-Restart your terminal if `~/bin` was not already in your `PATH`.
 
 ### Windows
 
-```cmd
-git clone https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3.git
-cd AI-Learners-Journal-Kit-v3
-installers\Installer.bat
+Double-click `installers\Installer.bat`, then open:
+
+```text
+%USERPROFILE%\AI-Journal\Start AI Journal.bat
 ```
 
-Use `%USERPROFILE%\AI-Journal\ai-journal.bat` directly, or add `%USERPROFILE%\AI-Journal` to your user `PATH`.
+### Linux
+
+```bash
+chmod +x installers/install_ai_journal_v3.sh
+./installers/install_ai_journal_v3.sh
+ai-journal
+```
+
+## Menu
+
+Run `ai-journal` with no arguments, or use the double-click launcher.
+
+```text
+1. Create a new journal entry
+2. Add to latest entry
+3. Ask AI and save answer
+4. Search my journal
+5. Open latest entry
+6. Run setup check
+7. Quit
+```
+
+## Direct Commands
+
+These are optional for users who prefer the command line:
+
+```bash
+ai-journal new "Python Learning Session" python coding
+ai-journal append latest "Today I learned about list comprehensions."
+ai-journal list --limit 5
+ai-journal search "python"
+ai-journal open latest
+```
+
+You can also omit text arguments and let the app prompt you:
+
+```bash
+ai-journal new
+ai-journal append latest
+ai-journal search
+```
 
 ## Optional AI Setup
 
@@ -34,38 +71,15 @@ The `ask` command needs the OpenAI package and an API key:
 ```bash
 python3 -m pip install -r requirements.txt
 export OPENAI_API_KEY="your-api-key"
+ai-journal ask "What is React useEffect?"
 ```
 
-By default, `ask` uses `gpt-4o-mini`. Override it with `AI_JOURNAL_OPENAI_MODEL` if you want another OpenAI chat model.
+AI Journal shows a review score for structure and completeness. It is not a factual accuracy score. Verify high-stakes topics with a trusted expert or source.
 
-Claude, Gemini, and multi-source comparison are planned features. For now, use `--source chatgpt` for API-backed AI capture.
-
-## First Entry
-
-Always quote topics and content that contain spaces or shell-special characters.
+Use plain terminal output when needed:
 
 ```bash
-ai-journal new "Python Learning Session" python coding
-ai-journal append latest "Today I learned about list comprehensions."
-ai-journal list --limit 5
-ai-journal search "python"
-ai-journal open latest
-```
-
-## AI-Assisted Entry
-
-```bash
-ai-journal ask "What is React useEffect?" --source chatgpt
-```
-
-The command shows the response, a quality estimate, risk metadata, and a curation menu:
-
-```text
-/save     - Save response to journal
-/edit     - Edit response before save
-/verify   - Add verification notes
-/reflect  - Add critical thinking reflection
-/discard  - Do not save this response
+ai-journal ask "What is Docker?" --plain
 ```
 
 ## Data Location
@@ -76,3 +90,9 @@ Entries are stored as Markdown files under:
 - Windows: `%USERPROFILE%\AI-Journal\entries\YYYY\MM\`
 
 The searchable index lives at `~/AI-Journal/index.json` or `%USERPROFILE%\AI-Journal\index.json`.
+
+## Support And Privacy
+
+For workshop or paid-product distribution, include `SUPPORT.md`, `PRIVACY.md`, `REFUND_POLICY.md`, and `SECURITY.md`.
+
+The core journal stores entries locally. The optional AI workflow sends prompts to OpenAI only when the user configures an API key and runs `ai-journal ask`.

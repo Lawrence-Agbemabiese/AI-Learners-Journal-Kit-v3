@@ -1,331 +1,183 @@
-# 📘 AI Learner's Journal Kit v3.0
+# AI Learner's Journal Kit v3.0
 
-## Table of Contents
+AI Learner's Journal Kit turns useful AI conversations, class notes, workshop exercises, and learning moments into a searchable Markdown journal.
 
-- [🚀 Quick Start](#-quick-start)
-- [✨ Key Features](#-key-features)
-- [📦 What's Included](#-whats-included)
-- [💡 Use Cases](#-use-cases-that-work-today)
-- [🔗 Workflow Integration](#-perfect-integration-with-your-workflow)
-- [📊 Technical Specifications](#-technical-specifications)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [Learning Resources](#learning-resources)
+The current product is a local-first command-line tool with a beginner menu. It is suitable for training workshops, self-paced learners, and paid digital product distribution when packaged from a verified release artifact.
 
+## Quick Start
 
-[![GitHub Release](https://img.shields.io/github/v/release/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3?label=Latest%20Release)](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Platform Support](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3)
-[![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-green)](https://www.python.org/downloads/)
+### macOS
 
-> **Transform your AI conversations into a permanent, searchable knowledge base**
+1. Download the release ZIP or clone this repository.
+2. Right-click `installers/Installer.command`.
+3. Choose `Open`, then follow the prompts.
+4. Start the beginner menu:
 
-The AI Learner's Journal Kit is a sophisticated command-line tool that captures, organizes, and retrieves insights from your AI-assisted learning sessions. Turn ephemeral conversations into lasting knowledge with intelligent curation and powerful search capabilities.
-
-🎉 **What's New in v3.0**: Optional OpenAI integration, quality rating metadata, and interactive curation commands. Claude, Gemini, and multi-source comparison are planned features.
-
-## 📋 Table of Contents
-
-- [🚀 Quick Start](#-quick-start)
-- [✨ Key Features](#-key-features)
-- [📦 What's Included](#-whats-included)
-- [💡 Use Cases](#-use-cases-that-work-today)
-- [🔗 Workflow Integration](#-perfect-integration-with-your-workflow)
-- [📊 Technical Specifications](#-technical-specifications)
-- [🎁 Advanced Features](#-bonus-features)
-- [📚 Documentation](#-complete-documentation)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [🛠️ Support](#-support)
-
-## 🚀 Quick Start
-
-### Installation (Choose your platform)
-
-#### 🍎 macOS (Recommended)
 ```bash
-# Clone the repository
-git clone https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3.git
-cd AI-Learners-Journal-Kit-v3
-
-# Run the installer
-double-click installers/Installer.command
-# OR from terminal:
-chmod +x installers/Installer.command && ./installers/Installer.command
-
-# Restart your terminal, then test:
-ai-journal new "My First Learning Session" learning
+ai-journal
 ```
 
-#### 🗺️ Windows
+You can also double-click `~/AI-Journal/Start AI Journal.command` after installation.
+
+### Windows
+
+1. Download the release ZIP or clone this repository.
+2. Double-click `installers\Installer.bat`.
+3. Open a new Command Prompt and run:
+
 ```cmd
-# Clone and navigate
-git clone https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3.git
-cd AI-Learners-Journal-Kit-v3
+ai-journal
+```
 
-# Run installer
-installers\Installer.bat
+If the new terminal does not recognize `ai-journal`, use:
 
-# Test installation
+```cmd
+%USERPROFILE%\AI-Journal\ai-journal.bat
+```
+
+You can also double-click `%USERPROFILE%\AI-Journal\Start AI Journal.bat`.
+
+### Linux
+
+```bash
+chmod +x installers/install_ai_journal_v3.sh
+./installers/install_ai_journal_v3.sh
+ai-journal
+```
+
+## Installation
+
+The installers copy the CLI wrapper and Python scripts into `~/AI-Journal` on macOS/Linux or `%USERPROFILE%\AI-Journal` on Windows. Existing journal entries are preserved.
+
+For paid distribution, use the versioned ZIP created by the release build script instead of asking customers to download a source snapshot.
+
+## Features
+
+- Beginner menu for non-coders: create, append, search, open, and check setup.
+- Direct CLI commands for workshop facilitators and power users.
+- Plain Markdown journal entries stored locally on the user's computer.
+- Search by topic or tag through a small JSON index.
+- Optional OpenAI workflow through `OPENAI_API_KEY`.
+- AI review score that estimates structure and completeness, not factual correctness.
+- Cross-platform installers for macOS, Windows, and Linux.
+- Release packaging script for customer-ready ZIP and tar.gz artifacts.
+
+## Beginner Menu
+
+Run `ai-journal` with no arguments:
+
+```text
+1. Create a new journal entry
+2. Add to latest entry
+3. Ask AI and save answer
+4. Search my journal
+5. Open latest entry
+6. Run setup check
+7. Quit
+```
+
+The menu asks for topics, notes, and search terms interactively, so users do not need to know terminal quoting rules.
+
+## Commands
+
+```bash
 ai-journal new "My First Learning Session" learning
+ai-journal append latest "A useful insight I want to remember"
+ai-journal search "docker"
+ai-journal list --limit 10
+ai-journal open latest
+ai-journal setup
 ```
 
-#### 🐧 Linux
+You can also run commands without text arguments and let the app prompt you:
+
 ```bash
-# Clone the repository
-git clone https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3.git
-cd AI-Learners-Journal-Kit-v3
-
-# Manual setup (see docs/Quick_Start.md for details)
-cp ai-journal /usr/local/bin/
-mkdir -p ~/AI-Journal/scripts
-cp scripts/* ~/AI-Journal/scripts/
-
-# Test installation
-ai-journal new "My First Learning Session" learning
+ai-journal new
+ai-journal append latest
+ai-journal search
 ```
 
-## ✨ Key Features
+## Optional AI Integration
 
-### 🤖 AI-Powered Learning Capture
-- **OpenAI Integration**: Query ChatGPT-compatible OpenAI models when `OPENAI_API_KEY` is configured
-- **Interactive Curation**: Built-in commands to save, edit, and verify responses
-- **Quality Rating System**: Rate and track the quality of AI responses
-- **Source Comparison**: Planned support for comparing answers across multiple AI platforms
+The core journal works without an API key. To ask ChatGPT-compatible OpenAI models from the journal:
 
-### 📋 Smart Organization
-- **Intelligent Tagging**: Automatic and manual tagging with statistics
-- **Structured Entries**: Consistent format with metadata and timestamps
-- **Hierarchical Storage**: Year/month organized file structure
-- **Search**: Find entries by topic and tags
-
-### 💻 Command-Line Excellence
-- **6 Core Commands**: `new`, `ask`, `append`, `list`, `search`, `open`
-- **Flexible Targeting**: Reference entries by ID, topic, slug, or "latest"
-- **Shell Integration**: Easy aliases and shortcuts
-- **Cross-Platform**: macOS, Linux, Windows support
-
-### 🔍 Discovery & Retrieval
-- **Topic/Tag Search**: Find entries with partial topic or tag matches
-- **Tag-Based Filtering**: Organize and find by topic categories
-- **Recent Lists**: Quick access to latest entries
-- **Editor Integration**: Opens in your preferred text editor
-
-## 📦 What's Included
-
-### ✅ **Core System**
-- **`ai-journal`** — Main CLI tool with 6 commands (new, ask, append, list, search, open)
-- **`scripts/entry_saver.py`** — Creates structured journal entries with metadata
-- **`scripts/auto_append.py`** — Adds content to existing entries intelligently
-
-### ✅ **Installation & Setup**
-- **`installers/Installer.command`** — Full macOS installer (PATH setup, directory creation, testing)
-- **`installers/Installer.bat`** — Windows installer
-- **`docs/Quick_Start.md`** — Complete guide with real examples
-
-### ✅ **Visuals & Marketing**
-- **`visuals/poster.png`** — Professional poster showcasing the concept
-- **`visuals/poster.html`** — Source file for poster (editable)
-- **`promo/blog-post-draft.md`** — Thought leadership content about AI-assisted learning
-
-### ✅ **Demo Content**
-- **`demo/sample-entries/`** — Real journal entries showing the system in action
-- **`demo/usage-examples.md`** — Copy-paste commands to try
-
-## 🎯 **Key Features That Actually Work**
-
-### **1. Smart Entry Creation**
 ```bash
-ai-journal new "Docker Container Debugging" docker devops troubleshooting
-# → Creates ~/AI-Journal/entries/2025/09/20250910-docker-container-debugging.md
-# → Updates searchable index
-# → Tracks tags and metadata
+python3 -m pip install -r requirements.txt
+export OPENAI_API_KEY="your-api-key-here"
+ai-journal ask "Explain photosynthesis for a beginner"
 ```
 
-### **2. Intelligent Content Appending**
-```bash
-ai-journal append latest "Q: How to see logs from a stopped container?
-A: docker logs <container-id> still works even after container stops"
-# → Finds the right section to add content
-# → Timestamps your additions
-# → Updates word count statistics
+For Windows Command Prompt:
+
+```cmd
+set OPENAI_API_KEY=your-api-key-here
+ai-journal ask "Explain photosynthesis for a beginner"
 ```
 
-### **3. Powerful Search & Discovery**
-```bash
-ai-journal search "docker"        # Find by topic or tags
-ai-journal list --limit 10        # Recent entries
-ai-journal open latest            # Open in your default editor
-```
+AI Journal does not include an OpenAI API key. Users are responsible for their own API usage and costs.
 
-### **4. Organized File Structure**
-```
+## Workshop Use
+
+This repository includes a workshop guide for facilitators: `docs/Workshop_Facilitator_Guide.md`.
+
+Recommended workshop setup:
+
+- Distribute the release ZIP before the session.
+- Ask attendees to install Python 3.9 or newer before the workshop.
+- Start with the beginner menu, then show direct commands.
+- Use the optional AI workflow only after the core journal flow works.
+
+## Paid Product Use
+
+Use `docs/Paid_Product_Checklist.md` before publishing to Payhip, Gumroad, Lemon Squeezy, or another digital storefront.
+
+Minimum paid-product package:
+
+- Versioned release ZIP.
+- `README.md`
+- `docs/Quick_Start_v3.md`
+- `SUPPORT.md`
+- `PRIVACY.md`
+- `REFUND_POLICY.md`
+- `SECURITY.md`
+- `CHANGELOG.md`
+- SHA256 checksums from the release build.
+
+## Journal Storage
+
+Entries are stored as Markdown in `~/AI-Journal`:
+
+```text
 ~/AI-Journal/
-├── entries/2025/09/
-│   ├── 20250910-docker-debugging.md
-│   └── 20250910-python-tips.md
-├── index.json                    # Searchable metadata
-└── media/                        # Screenshots, diagrams
+  entries/
+    2026/
+      05/
+        20260523-my-topic.md
+  media/
+  scripts/
+  index.json
 ```
 
-## 💡 **Use Cases That Work Today**
+Because entries are plain Markdown, users can read, edit, back up, or export them with ordinary tools.
 
-### **For Students**
-- Capture Q&As from AI tutoring sessions
-- Build a personal textbook from your learning journey
-- Organize knowledge by subject with tagging
+## Documentation
 
-### **For Professionals**
-- Document solutions to technical problems
-- Build a searchable knowledge base of work insights
-- Track learning goals and progress
+- `docs/Quick_Start_v3.md` - step-by-step beginner guide.
+- `docs/Workshop_Facilitator_Guide.md` - training workshop runbook.
+- `docs/Paid_Product_Checklist.md` - storefront and release checklist.
+- `docs/Release_Checklist.md` - engineering release gate.
+- `docs/Release_Notes_v3.0.1.md` - corrected release note template.
+- `OPTIONAL_READING_command-line.md` - command-line background.
+- `demo/usage-examples.md` - copy-paste examples.
 
-### **For Researchers**
-- Organize literature reviews and findings
-- Connect related concepts across different projects
-- Maintain context for complex investigations
+## Support
 
-## 🔗 **Perfect Integration with Your Workflow**
+See `SUPPORT.md` for workshop and paid-customer support expectations.
 
-### **Works with AI assistants two ways:**
-- Query OpenAI directly with `ai-journal ask` after installing `requirements.txt` and setting `OPENAI_API_KEY`
-- Copy valuable Q&As from Claude, Gemini, Copilot, or browser-based tools into your journal
-- Build a permanent knowledge asset from curated learning sessions
+## Privacy
 
-### **Shell Integration:**
-```bash
-# Add convenient aliases
-echo 'alias jnew="ai-journal new"' >> ~/.zshrc
-echo 'alias jadd="ai-journal append latest"' >> ~/.zshrc
-```
+See `PRIVACY.md`. The core journal stores data locally. Optional AI prompts are sent to OpenAI only when the user configures an API key and runs `ai-journal ask`.
 
-### **tmux Integration:**
-```bash
-# Quick capture keybinding in ~/.tmux.conf
-bind-key j run-shell "read -p 'Journal: ' note && ai-journal append latest \"$note\""
-```
+## License
 
-## 📊 **Technical Specifications**
-
-- **Languages**: Python 3.9+, Bash
-- **Dependencies**: Core journal commands use the Python standard library; `ai-journal ask` requires `openai` from `requirements.txt`
-- **File Format**: Markdown with readable metadata
-- **Storage**: JSON index + organized file system
-- **Platform Support**: macOS, Linux, Windows (WSL)
-- **Editor Integration**: Opens in system default or any editor you prefer
-
-## 🎁 **Bonus Features**
-
-### **Smart Tagging System**
-- Automatic tag counting and statistics
-- Tag-based search and filtering
-- Suggested tags based on content patterns
-
-### **Flexible Content Structure**
-- Predefined sections: Key Points, Q&A, Follow-up Actions, Reflection
-- Custom sections supported
-- Timestamped updates
-
-### **Export Ready**
-- Standard Markdown format
-- Easy to convert to HTML, PDF, or other formats
-- Compatible with static site generators (Jekyll, Hugo, etc.)
-
-## 🚀 **Get Started Right Now**
-
-1. **Install**: Double-click the installer
-2. **Create**: `ai-journal new "What I Learned Today" learning`
-3. **Capture**: `ai-journal append latest "Your insight here"`
-4. **Discover**: `ai-journal search "keyword"`
-
-## 📈 **What Users Are Saying**
-
-*"Finally, a way to turn my AI conversations into permanent knowledge!"*
-
-*"The search feature is incredible—I can find solutions to problems I solved months ago."*
-
-*"My personal textbook is growing automatically as I learn."*
-
-## 🛠️ **Support & Customization**
-
-- **Full source code included** — modify anything you want
-- **Clear documentation** — examples for every feature
-- **Extensible design** — add your own commands and workflows
-
-## 📚 **Complete Documentation**
-
-- **`docs/Quick_Start.md`** — Get running in minutes
-- **`docs/Quick_Start_v3.md`** — Complete setup and usage guide
-
----
-
-## 🎯 **The Bottom Line**
-
-This isn't just another productivity tool—it's a **knowledge capture system** that grows smarter as you use it. Every question you ask, every problem you solve, every insight you gain becomes part of your permanent, searchable knowledge base.
-
-**Stop losing valuable learning moments. Start building your AI-powered knowledge companion today.**
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how you can help:
-
-### 🐛 Bug Reports
-- Use GitHub Issues to report bugs
-- Include your OS, Python version, and error messages
-- Provide steps to reproduce the issue
-
-### ✨ Feature Requests
-- Suggest new features via GitHub Issues
-- Explain the use case and expected behavior
-- Check existing issues to avoid duplicates
-
-### 📝 Code Contributions
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and test thoroughly
-4. Update documentation if needed
-5. Submit a pull request with a clear description
-
-### 📚 Documentation
-- Improve existing documentation
-- Add examples and use cases
-- Fix typos and clarify instructions
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-**TL;DR**: You can use, modify, and distribute this software freely, even for commercial purposes. Just include the original license notice.
-
-## 🛠️ Support
-
-### 📚 Documentation
-- **[Quick Start Guide](docs/Quick_Start.md)** - Get running in minutes
-- **[Quick Start v3](docs/Quick_Start_v3.md)** - Complete setup and usage guide
-
-### 💬 Getting Help
-- 🐛 [GitHub Issues](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3/issues) - Bug reports and feature requests
-- 🐦 [Twitter](https://twitter.com/lawrence_agb) - Updates and tips
-
-### 🎆 Acknowledgments
-- Built with ❤️ by [Lawrence Agbemabiese](https://github.com/Lawrence-Agbemabiese)
-- Inspired by the AI learning community
-- Thank you to all contributors and users!
-
----
-
-**Version**: 3.0 (September 2025)  
-**Author**: [Lawrence Agbemabiese](https://github.com/Lawrence-Agbemabiese)  
-**License**: MIT License  
-**Repository**: [AI-Learners-Journal-Kit-v3](https://github.com/Lawrence-Agbemabiese/AI-Learners-Journal-Kit-v3)
-
-🚀 **Happy Learning! Transform your AI conversations into lasting knowledge.**
-
-## Learning Resources
-
-- **Optional Reading → Command Line Basics:** See the curated, beginner-friendly set of four text tutorials to build core shell skills.  
-  → `./OPTIONAL_READING_command-line.md`
-
-> Use these alongside your Journal prompts: capture patterns you’ll reuse, not one-off commands.
+MIT. See `LICENSE`.

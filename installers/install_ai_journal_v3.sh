@@ -27,6 +27,11 @@ cp "$BUNDLE_DIR/scripts"/*.py "$SCRIPTS_DIR/"
 chmod +x "$JOURNAL_DIR/ai-journal" "$SCRIPTS_DIR"/*.py
 ln -sf "$JOURNAL_DIR/ai-journal" "$BIN_DIR/ai-journal"
 
+if [ -f "$BUNDLE_DIR/Start AI Journal.command" ]; then
+    cp "$BUNDLE_DIR/Start AI Journal.command" "$JOURNAL_DIR/"
+    chmod +x "$JOURNAL_DIR/Start AI Journal.command"
+fi
+
 if [ ! -f "$JOURNAL_DIR/index.json" ]; then
     cat > "$JOURNAL_DIR/index.json" <<EOF
 {
@@ -56,4 +61,6 @@ echo "Optional AI integration dependency:"
 echo "  python3 -m pip install -r \"$BUNDLE_DIR/requirements.txt\""
 echo ""
 echo "Try:"
-echo "  ai-journal new \"My First Learning Session\" learning"
+echo "  ai-journal"
+echo "Or double-click:"
+echo "  $JOURNAL_DIR/Start AI Journal.command"

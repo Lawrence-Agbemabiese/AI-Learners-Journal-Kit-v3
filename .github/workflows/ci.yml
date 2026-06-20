@@ -13,6 +13,7 @@ jobs:
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.9', '3.10', '3.11', '3.12']
@@ -111,13 +112,35 @@ jobs:
         # Check that important files exist
         test -f README.md
         test -f LICENSE
-        test -f docs/Quick_Start.md || echo "Warning: Quick_Start.md not found"
+        test -f CHANGELOG.md
+        test -f SUPPORT.md
+        test -f PRIVACY.md
+        test -f REFUND_POLICY.md
+        test -f SECURITY.md
+        test -f docs/Quick_Start_v3.md
+        test -f docs/Workshop_Facilitator_Guide.md
+        test -f docs/Paid_Product_Checklist.md
+        test -f docs/Release_Checklist.md
+        test -f docs/Release_Notes_v3.0.1.md
         
         # Check that README has required sections
         grep -q "Quick Start" README.md
         grep -q "Installation" README.md
         grep -q "Features" README.md
+        grep -q "Workshop Use" README.md
+        grep -q "Paid Product Use" README.md
+        grep -q "Support" README.md
+        grep -q "Privacy" README.md
         grep -q "License" README.md
+
+    - name: Validate release package build
+      if: runner.os == 'Linux' && matrix.python-version == '3.12'
+      run: |
+        python scripts/build_release.py --version ci-smoke --allow-dirty
+        test -f dist/ai-learners-journal-kit-ci-smoke.zip
+        test -f dist/ai-learners-journal-kit-ci-smoke.tar.gz
+        test -f dist/SHA256SUMS.txt
+        test -f dist/release-manifest.json
 
   lint:
     name: Lint Code
@@ -225,17 +248,15 @@ jobs:
 
     - name: Create release artifacts
       run: |
-        # Create a release archive
-        tar -czf ai-learners-journal-kit-${{ github.event.release.tag_name }}.tar.gz \
-          --exclude='.git*' \
-          --exclude='test-*' \
-          --exclude='*.tar.gz' \
-          .
+        python scripts/build_release.py --version "${{ github.event.release.tag_name }}"
 
     - name: Upload release artifacts
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          ai-learners-journal-kit-${{ github.event.release.tag_name }}.tar.gz
+          dist/ai-learners-journal-kit-${{ github.event.release.tag_name }}.zip
+          dist/ai-learners-journal-kit-${{ github.event.release.tag_name }}.tar.gz
+          dist/SHA256SUMS.txt
+          dist/release-manifest.json
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

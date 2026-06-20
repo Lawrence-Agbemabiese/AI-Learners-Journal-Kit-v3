@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-AI Journal Entry Saver v3.0
-Enhanced with AI integration metadata and connoisseurship features.
-"""
+"""Create AI Journal entries and maintain the searchable index."""
 
 import json
 import os
@@ -15,6 +12,14 @@ from pathlib import Path
 def get_journal_dir():
     """Get the AI Journal directory path."""
     return Path(os.environ.get("AI_JOURNAL_DIR", Path.home() / "AI-Journal"))
+
+
+def status(label, value=None):
+    """Print ASCII-safe status output for cross-platform terminal capture."""
+    if value is None:
+        print(label)
+    else:
+        print(f"{label}: {value}")
 
 
 def load_index():
@@ -102,9 +107,9 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
             var_path = entry_dir / var_filename
 
             if not var_path.exists():
-                print(f"✅ Created new entry: {var_path}")
-                print(f"📝 Topic: {variation}")
-                print(f"🏷️  Tags: {', '.join(tags) if tags else 'untagged'}")
+                status("Created new entry", var_path)
+                status("Topic", variation)
+                status("Tags", ", ".join(tags) if tags else "untagged")
                 return create_entry(variation, content, tags, ai_metadata)
 
         return str(entry_path)
@@ -129,17 +134,19 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
             metadata_lines.append(f"**AI Source:** {ai_metadata['source']}")
         if ai_metadata.get("quality_rating"):
             metadata_lines.append(
-                f"**Quality Rating:** {ai_metadata['quality_rating']}/10"
+                f"**Review Score:** {ai_metadata['quality_rating']}/10"
+            )
+            metadata_lines.append(
+                "**Review Score Note:** This estimates structure and completeness, "
+                "not factual correctness."
             )
         if ai_metadata.get("confidence"):
             metadata_lines.append(
                 f"**Confidence:** {ai_metadata['confidence'].title()}"
             )
         if ai_metadata.get("risk_level"):
-            risk_emoji = {"low": "🟢", "medium": "🟡", "high": "🔴"}
-            emoji = risk_emoji.get(ai_metadata["risk_level"], "")
             metadata_lines.append(
-                f"**Risk Level:** {emoji} {ai_metadata['risk_level'].title()}"
+                f"**Risk Level:** {ai_metadata['risk_level'].title()}"
             )
 
     content_sections.extend(metadata_lines)
@@ -222,7 +229,7 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
         else:
             index_data["ai_stats"]["sources_used"][source] = 1
 
-        # Update average quality rating
+        # Update average review score. Keep the JSON key for compatibility.
         total_ai = index_data["ai_stats"]["total_ai_assisted"]
         current_avg = index_data["ai_stats"]["avg_quality_rating"]
         new_rating = ai_metadata.get("quality_rating", 5)
@@ -242,19 +249,19 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
 
     save_index(index_data)
 
-    print(f"✅ Created new entry: {entry_path}")
-    print(f"📝 Topic: {topic}")
-    print(f"🏷️  Tags: {', '.join(tags) if tags else 'untagged'}")
+    status("Created new entry", entry_path)
+    status("Topic", topic)
+    status("Tags", ", ".join(tags) if tags else "untagged")
 
     # Show AI metadata if present
     if ai_metadata:
         if ai_metadata.get("source"):
-            print(f"🤖 AI Source: {ai_metadata['source']}")
+            status("AI Source", ai_metadata["source"])
         if ai_metadata.get("quality_rating"):
-            quality_bar = "★" * ai_metadata["quality_rating"] + "☆" * (
+            review_bar = "#" * ai_metadata["quality_rating"] + "-" * (
                 10 - ai_metadata["quality_rating"]
             )
-            print(f"⭐ Quality: {quality_bar} ({ai_metadata['quality_rating']}/10)")
+            status("Review Score", f"{review_bar} ({ai_metadata['quality_rating']}/10)")
 
     return str(entry_path)
 

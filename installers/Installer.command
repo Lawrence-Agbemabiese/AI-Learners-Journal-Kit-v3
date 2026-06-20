@@ -122,6 +122,13 @@ if [ -f "$BUNDLE_DIR/scripts/entry_saver.py" ]; then
     print_success "Copied Python scripts to AI Journal directory"
 fi
 
+# Copy the beginner launcher
+if [ -f "$BUNDLE_DIR/Start AI Journal.command" ]; then
+    cp "$BUNDLE_DIR/Start AI Journal.command" "$JOURNAL_DIR/"
+    chmod +x "$JOURNAL_DIR/Start AI Journal.command"
+    print_success "Copied beginner menu launcher"
+fi
+
 # Create symlink to make ai-journal globally available
 if [ ! -f "$BIN_DIR/ai-journal" ]; then
     # If not copied from installer directory, create symlink to the one we just built
@@ -172,12 +179,13 @@ echo ""
 print_success "🎉 Installation completed successfully!"
 echo ""
 echo -e "${BLUE}Next steps:${NC}"
-echo "1. Restart your terminal or run: source ~/.zshrc (or ~/.bash_profile)"
-echo "2. Create your first journal entry:"
+echo "1. Double-click: $JOURNAL_DIR/Start AI Journal.command"
+echo "2. Or restart your terminal and run: ai-journal"
+echo "3. Create your first journal entry:"
 echo -e "   ${YELLOW}ai-journal new \"My First Learning Session\" learning${NC}"
-echo "3. List your entries:"
+echo "4. List your entries:"
 echo -e "   ${YELLOW}ai-journal list${NC}"
-echo "4. Get help anytime:"
+echo "5. Get help anytime:"
 echo -e "   ${YELLOW}ai-journal --help${NC}"
 echo ""
 echo -e "${GREEN}Happy learning! 🚀${NC}"

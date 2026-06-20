@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-AI Journal Auto Append
-Appends content to existing journal entries or creates new ones.
-"""
+"""Append content to existing AI Journal entries."""
 
 import json
 import os
@@ -17,6 +14,14 @@ def get_journal_dir():
     return Path(os.environ.get("AI_JOURNAL_DIR", Path.home() / "AI-Journal"))
 
 
+def status(label, value=None):
+    """Print ASCII-safe status output for cross-platform terminal capture."""
+    if value is None:
+        print(label)
+    else:
+        print(f"{label}: {value}")
+
+
 def load_index():
     """Load the journal index."""
     index_path = get_journal_dir() / "index.json"
@@ -24,9 +29,7 @@ def load_index():
         with open(index_path, "r") as f:
             return json.load(f)
     except FileNotFoundError:
-        print(
-            "❌ No journal index found. Create your first entry with 'ai-journal new'"
-        )
+        status("No journal index found. Create your first entry with 'ai-journal new'")
         sys.exit(1)
 
 
@@ -74,7 +77,7 @@ def find_entry(search_term):
     if len(matches) == 1:
         return matches[0]
     elif len(matches) > 1:
-        print(f"🔍 Multiple entries found matching '{search_term}':")
+        status(f"Multiple entries found matching '{search_term}'")
         for match in matches:
             print(f"  {match['id']}: {match['topic']} ({match['created'][:10]})")
         print("Please be more specific or use the entry ID.")
@@ -100,7 +103,7 @@ def append_to_entry(entry, content, section="Q&A"):
     entry_path = journal_dir / entry["filename"]
 
     if not entry_path.exists():
-        print(f"❌ Entry file not found: {entry_path}")
+        status("Entry file not found", entry_path)
         sys.exit(1)
 
     # Read current content
@@ -151,9 +154,9 @@ def append_to_entry(entry, content, section="Q&A"):
 
     save_index(index_data)
 
-    print(f"✅ Appended content to: {entry['topic']}")
-    print(f"📁 File: {entry_path}")
-    print(f"⏰ Time: {timestamp}")
+    status("Appended content to", entry["topic"])
+    status("File", entry_path)
+    status("Time", timestamp)
 
 
 def main():
@@ -177,7 +180,7 @@ def main():
     elif not sys.stdin.isatty():
         content = sys.stdin.read().strip()
     else:
-        print("❌ No content provided. Provide content as argument or via stdin.")
+        status("No content provided. Provide content as argument or via stdin.")
         sys.exit(1)
 
     # Optional section parameter
@@ -187,13 +190,13 @@ def main():
     if search_term.lower() == "latest":
         entry = get_latest_entry()
         if not entry:
-            print("❌ No entries found. Create your first entry with 'ai-journal new'")
+            status("No entries found. Create your first entry with 'ai-journal new'")
             sys.exit(1)
     else:
         entry = find_entry(search_term)
         if not entry:
-            print(f"❌ No entry found matching '{search_term}'")
-            print("💡 Use 'ai-journal list' to see available entries")
+            status(f"No entry found matching '{search_term}'")
+            print("Use 'ai-journal list' to see available entries")
             sys.exit(1)
 
     # Append content

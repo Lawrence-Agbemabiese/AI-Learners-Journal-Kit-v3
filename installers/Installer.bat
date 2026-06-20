@@ -44,11 +44,11 @@ if exist "%JOURNAL_DIR%" (
     )
 ) else (
     mkdir "%JOURNAL_DIR%"
-    mkdir "%JOURNAL_DIR%\entries"
-    mkdir "%JOURNAL_DIR%\media"
-    mkdir "%SCRIPTS_DIR%"
     echo [32m[SUCCESS][0m Created AI Journal directory structure
 )
+if not exist "%JOURNAL_DIR%\entries" mkdir "%JOURNAL_DIR%\entries"
+if not exist "%JOURNAL_DIR%\media" mkdir "%JOURNAL_DIR%\media"
+if not exist "%SCRIPTS_DIR%" mkdir "%SCRIPTS_DIR%"
 
 REM Get the directory where this installer is located
 set "INSTALLER_DIR=%~dp0"
@@ -97,22 +97,24 @@ echo @echo off > "%JOURNAL_DIR%\ai-journal.bat"
 echo set "AI_JOURNAL_DIR=%%USERPROFILE%%\AI-Journal" >> "%JOURNAL_DIR%\ai-journal.bat"
 echo python "%JOURNAL_DIR%\scripts\journal_cli.py" %%* >> "%JOURNAL_DIR%\ai-journal.bat"
 
-REM Add to PATH (user environment variable)
-echo [32m[INFO][0m Adding AI Journal to your PATH...
+REM Create a double-click beginner launcher
+echo @echo off > "%JOURNAL_DIR%\Start AI Journal.bat"
+echo title AI Journal >> "%JOURNAL_DIR%\Start AI Journal.bat"
+echo call "%JOURNAL_DIR%\ai-journal.bat" menu >> "%JOURNAL_DIR%\Start AI Journal.bat"
+echo pause >> "%JOURNAL_DIR%\Start AI Journal.bat"
 
-REM This requires elevated permissions, so we'll create a simple script
-echo [33m[INFO][0m To use 'ai-journal' command globally, add this to your PATH:
-echo   %JOURNAL_DIR%
-echo.
-echo Or use the full path: %JOURNAL_DIR%\ai-journal.bat
+REM Add to PATH (user environment variable)
+echo [32m[INFO][0m Adding AI Journal to your user PATH...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$journal='%JOURNAL_DIR%'; $path=[Environment]::GetEnvironmentVariable('Path','User'); if (-not $path) { $path='' }; $parts=$path -split ';' | Where-Object { $_ }; if ($parts -notcontains $journal) { $new=($parts + $journal) -join ';'; [Environment]::SetEnvironmentVariable('Path',$new,'User'); Write-Host '[SUCCESS] PATH updated. Open a new terminal to use ai-journal globally.' } else { Write-Host '[SUCCESS] PATH already includes AI Journal.' }"
+echo You can also double-click: %JOURNAL_DIR%\Start AI Journal.bat
 echo.
 
 REM Test the installation
 echo [32m[INFO][0m Testing installation...
 
-python "%SCRIPTS_DIR%\entry_saver.py" --help >nul 2>&1
+"%JOURNAL_DIR%\ai-journal.bat" --help >nul 2>&1
 if %errorlevel% equ 0 (
-    echo [32m[SUCCESS][0m AI Journal scripts are working!
+    echo [32m[SUCCESS][0m AI Journal command is working!
 ) else (
     echo [31m[ERROR][0m Installation test failed. Please check the setup manually.
     pause
@@ -126,9 +128,10 @@ echo [32m========================================[0m
 echo.
 
 echo [36mNext steps:[0m
-echo 1. Add %JOURNAL_DIR% to your system PATH for global access
-echo 2. Or use: %JOURNAL_DIR%\ai-journal.bat new "My First Entry" learning
-echo 3. Read the Quick Start guide in docs\Quick_Start.md
+echo 1. Double-click: %JOURNAL_DIR%\Start AI Journal.bat
+echo 2. Or open a new terminal and run: ai-journal
+echo 3. Direct command: %JOURNAL_DIR%\ai-journal.bat new "My First Entry" learning
+echo 4. Read the Quick Start guide in docs\Quick_Start.md
 echo.
 
 echo [32mHappy learning! 🚀[0m
@@ -138,7 +141,7 @@ REM Optional: Create a sample entry
 set /p CREATE_SAMPLE="Would you like to create a sample journal entry? (y/n): "
 if /i "%CREATE_SAMPLE%"=="y" (
     echo [32m[INFO][0m Creating sample entry...
-    python "%SCRIPTS_DIR%\entry_saver.py" "Getting Started with AI Journal - Windows" tutorial learning windows
+    "%JOURNAL_DIR%\ai-journal.bat" new "Getting Started with AI Journal - Windows" tutorial learning windows
     echo [32m[SUCCESS][0m Sample entry created!
 )
 

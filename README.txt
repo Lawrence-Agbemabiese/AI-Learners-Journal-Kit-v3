@@ -1,38 +1,53 @@
-AI Learner's Journal Kit v2.0 — Production Ready!
+AI Learner's Journal Kit v3.0
 
-🎉 NEW: This version actually works! No more placeholders.
+QUICK START
 
-QUICK START:
-1. macOS: Double-click installers/Installer.command
-2. Windows: Run installers/Installer.bat  
-3. Restart terminal
-4. Try: ai-journal new "My First Entry" learning
+macOS:
+1. Right-click installers/Installer.command
+2. Choose Open
+3. Double-click ~/AI-Journal/Start AI Journal.command
 
-WHAT'S INCLUDED (All Working):
-✅ ai-journal CLI tool (new, append, list, search, open)
-✅ Python scripts (entry_saver.py, auto_append.py)
-✅ Complete installers for macOS & Windows
-✅ Full documentation with real examples
-✅ Professional visuals and marketing materials
-✅ Demo entries showing system in action
+Windows:
+1. Double-click installers\Installer.bat
+2. Open a new Command Prompt and run ai-journal
+3. Or double-click %USERPROFILE%\AI-Journal\Start AI Journal.bat
 
-FEATURES THAT WORK:
-→ Smart entry creation with metadata
-→ Intelligent content appending  
-→ Powerful search across all entries
-→ Organized file structure (~/AI-Journal/)
-→ Tag-based organization
-→ Integration with tmux, shell aliases
-→ Works with any AI assistant (ChatGPT, Claude, etc.)
+Linux:
+1. Run: chmod +x installers/install_ai_journal_v3.sh
+2. Run: ./installers/install_ai_journal_v3.sh
+3. Run: ai-journal
 
-DOCUMENTATION:
-- docs/Quick_Start.md - Complete setup guide
-- README.md - Full feature overview
-- All scripts include help text
+BEGINNER MENU
 
-SUPPORT:
-Full source code included. MIT license.
-Modify, extend, and distribute freely.
+Run ai-journal with no arguments to open a menu:
+1. Create a new journal entry
+2. Add to latest entry
+3. Ask AI and save answer
+4. Search my journal
+5. Open latest entry
+6. Run setup check
+7. Quit
 
-Version: 2.0 (September 2025)
-Author: Agentic Tools
+WHAT IS INCLUDED
+
+- ai-journal CLI and beginner menu
+- Python scripts for saving, appending, listing, searching, and opening entries
+- Optional OpenAI integration using the user's own OPENAI_API_KEY
+- macOS, Linux, and Windows installers
+- Double-click launchers for macOS and Windows
+- Workshop and paid-product readiness documentation
+- Support, privacy, refund, and security policies
+
+NOTES
+
+The core journal works without an API key.
+
+The optional AI workflow requires the OpenAI package and OPENAI_API_KEY.
+
+AI review scores estimate structure and completeness, not factual correctness.
+Verify high-stakes topics with a trusted expert or source.
+
+Read SUPPORT.md, PRIVACY.md, REFUND_POLICY.md, and SECURITY.md before paid distribution.
+
+Version: 3.0
+License: MIT
