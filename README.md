@@ -97,9 +97,41 @@ ai-journal append latest
 ai-journal search
 ```
 
-## Optional AI Integration
+## If your computer blocks the app the first time
 
-The core journal works without an API key. To ask ChatGPT-compatible OpenAI models from the journal:
+Because this app is downloaded from the internet and is not yet signed by Apple
+or Microsoft, your computer may warn you the first time you open the launcher.
+Nothing is wrong with the file - this is the normal warning for new downloads.
+
+**macOS** ("Apple could not verify..."): click **Done** (not "Move to Trash"),
+then open **System Settings -> Privacy & Security**, scroll to the Security
+section, and click **Open Anyway** next to the app name. Confirm once more.
+Power-user shortcut, run once in Terminal inside the folder:
+
+```bash
+xattr -dr com.apple.quarantine ai-coding-journal-starter
+```
+
+You can always skip the launcher entirely and just run:
+
+```bash
+python3 scripts/journal_cli.py menu
+```
+
+**Windows** ("Windows protected your PC"): click **More info**, then **Run
+anyway**.
+
+## Turn on AI answers
+
+The journal works fully without AI, and beginner questions like "what is an
+API?" are answered offline by the built-in **Starter Guide** - no key needed.
+To get AI answers to *any* question, switch on full AI once. There are free
+options:
+
+- **Free:** create a free **Google Gemini** or **Groq** API key.
+- **Or:** use an **OpenAI** key if you have one (paid per usage).
+
+Then install the optional package and set your key:
 
 ```bash
 python3 -m pip install -r requirements.txt
@@ -114,7 +146,8 @@ set OPENAI_API_KEY=your-api-key-here
 ai-journal ask "Explain photosynthesis for a beginner"
 ```
 
-AI Journal does not include an OpenAI API key. Users are responsible for their own API usage and costs.
+AI Journal does not include an API key. Users are responsible for their own API
+usage and costs. The offline Starter Guide always works for free.
 
 ## Workshop Use
 

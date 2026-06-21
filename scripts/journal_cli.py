@@ -41,9 +41,10 @@ def prompt_required(label: str) -> str:
         print(f"{label} is required.")
 
 
-def prompt_optional_list(label: str) -> list[str]:
-    """Prompt for a comma- or space-separated list."""
-    value = input(f"{label} (optional): ").strip()
+def prompt_optional_list(label: str, example: Optional[str] = None) -> list[str]:
+    """Prompt for a comma- or space-separated list, with an optional example."""
+    hint = f" (optional, e.g. {example})" if example else " (optional)"
+    value = input(f"{label}{hint}: ").strip()
     if not value:
         return []
     return [item.strip() for item in value.replace(",", " ").split() if item.strip()]
@@ -92,20 +93,68 @@ def resolve_entry(target: str) -> Optional[dict]:
 def cmd_new(args: argparse.Namespace) -> None:
     """Create a new journal entry."""
     topic = args.topic or prompt_required("Entry topic")
-    tags = args.tags if args.topic else prompt_optional_list("Tags")
+    tags = (
+        args.tags
+        if args.topic
+        else prompt_optional_list("Tags", example="python, beginner, bug-fix")
+    )
     create_entry(topic, tags=tags)
+
+
+SECTION_CHOICES = {
+    "1": "Reflection",
+    "2": "Key Points",
+    "3": "Questions & Answers",
+    "4": "Full Session Content",
+}
 
 
 def cmd_append(args: argparse.Namespace) -> None:
     """Append content to an existing journal entry."""
     require_index()
     target = args.target or input("Entry to update [latest]: ").strip() or "latest"
-    content = args.content or prompt_multiline("Content to add")
-    section = args.section or "Q&A"
     entry = resolve_entry(target)
     if entry is None:
         print(f"No entry found matching '{target}'", file=sys.stderr)
         raise SystemExit(1)
+
+    # Interactive when content was not passed on the command line (menu path).
+    interactive = getattr(args, "content", None) is None
+
+    # Show which entry we're about to write to and let the user redirect.
+    # (Asking AI can silently create a new "latest" entry, so confirm here.)
+    if interactive:
+        print(f'\nAdding to: "{entry["topic"]}"  (created {entry["created"][:10]})')
+        if input("Is this the right entry? [Y/n]: ").strip().lower().startswith("n"):
+            index = load_index()
+            print("\nYour entries:")
+            for existing in sorted(
+                index["entries"], key=lambda e: e["created"], reverse=True
+            ):
+                print("  " + format_entry(existing))
+            pick = input("\nType the number of the entry to use: ").strip()
+            chosen = resolve_entry(pick) if pick else None
+            if chosen is None:
+                print("No matching entry. Nothing was changed.")
+                return
+            entry = chosen
+
+    content = args.content or prompt_multiline("Content to add")
+
+    section = args.section
+    if section is None:
+        if interactive:
+            print("\nWhere should this go?")
+            print("  1. Reflection (default)")
+            print("  2. Key Points")
+            print("  3. Questions & Answers")
+            print("  4. Full Session Content")
+            section = SECTION_CHOICES.get(
+                input("Choose 1-4 [1]: ").strip(), "Reflection"
+            )
+        else:
+            section = "Reflection"
+
     append_to_entry(entry, content, section)
 
 
@@ -120,22 +169,47 @@ def cmd_list(args: argparse.Namespace) -> None:
 
 
 def cmd_search(args: argparse.Namespace) -> None:
-    """Search journal entries by topic or tag."""
+    """Search journal entries by title, tag, AND the text inside each entry."""
     index = load_index()
     query = (args.query or prompt_required("Search keyword")).lower()
-    matches = [
-        entry
-        for entry in index["entries"]
-        if query in entry["topic"].lower()
-        or any(query in tag.lower() for tag in entry.get("tags", []))
-    ]
+    journal_dir = get_journal_dir()
+
+    matches = []
+    for entry in index["entries"]:
+        in_meta = query in entry["topic"].lower() or any(
+            query in tag.lower() for tag in entry.get("tags", [])
+        )
+
+        snippet = None
+        try:
+            text = (journal_dir / entry["filename"]).read_text(encoding="utf-8")
+        except OSError:
+            text = ""
+        if query in text.lower():
+            for line in text.splitlines():
+                stripped = line.strip()
+                if (
+                    query in stripped.lower()
+                    and stripped
+                    and not stripped.startswith("#")
+                    and not stripped.startswith("<!--")
+                ):
+                    snippet = stripped if len(stripped) <= 100 else stripped[:97] + "..."
+                    break
+
+        if in_meta or snippet is not None:
+            matches.append((entry, snippet))
 
     if not matches:
         print("No matches found.")
         return
 
-    for entry in sorted(matches, key=lambda entry: entry["created"], reverse=True):
+    for entry, snippet in sorted(
+        matches, key=lambda m: m[0]["created"], reverse=True
+    ):
         print(format_entry(entry))
+        if snippet:
+            print(f"      > {snippet}")
 
 
 def open_path(path: Path) -> None:
@@ -149,7 +223,7 @@ def open_path(path: Path) -> None:
 
 
 def cmd_open(args: argparse.Namespace) -> None:
-    """Open a journal entry."""
+    """Show a journal entry in the terminal; offer to open it in an app too."""
     require_index()
     target = args.target or input("Entry to open [latest]: ").strip() or "latest"
     entry = resolve_entry(target)
@@ -158,10 +232,35 @@ def cmd_open(args: argparse.Namespace) -> None:
         raise SystemExit(1)
 
     entry_path = get_journal_dir() / entry["filename"]
-    if args.print_path:
+    if getattr(args, "print_path", False):
         print(entry_path)
         return
-    open_path(entry_path)
+
+    # Show the entry right here in the terminal. This avoids surprising the
+    # user by launching whatever app happens to be the system's .md handler.
+    try:
+        text = (entry_path).read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"Could not read entry: {exc}", file=sys.stderr)
+        raise SystemExit(1)
+
+    # Hide invisible template hints so the preview reads cleanly.
+    visible = "\n".join(
+        line
+        for line in text.split("\n")
+        if not (line.strip().startswith("<!--") and line.strip().endswith("-->"))
+    )
+
+    rule = "-" * 60
+    print(f"\n{rule}\n{visible.strip()}\n{rule}")
+    print(f"Saved at: {entry_path}")
+
+    try:
+        answer = input("Open in your default app too? [y/N]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        answer = ""
+    if answer.startswith("y"):
+        open_path(entry_path)
 
 
 def cmd_ask(args: argparse.Namespace) -> None:
@@ -219,7 +318,7 @@ def cmd_menu(args: argparse.Namespace) -> None:
         if choice == "1":
             cmd_new(argparse.Namespace(topic=None, tags=[]))
         elif choice == "2":
-            cmd_append(argparse.Namespace(target="latest", content=None, section="Q&A"))
+            cmd_append(argparse.Namespace(target="latest", content=None, section=None))
         elif choice == "3":
             cmd_ask(argparse.Namespace(question=None, options=[]))
         elif choice == "4":
@@ -251,7 +350,7 @@ def build_parser() -> argparse.ArgumentParser:
     append_parser = subparsers.add_parser("append", help="Append to an entry")
     append_parser.add_argument("target", nargs="?")
     append_parser.add_argument("content", nargs="?")
-    append_parser.add_argument("section", nargs="?", default="Q&A")
+    append_parser.add_argument("section", nargs="?", default=None)
     append_parser.set_defaults(func=cmd_append)
 
     list_parser = subparsers.add_parser("list", help="List entries")

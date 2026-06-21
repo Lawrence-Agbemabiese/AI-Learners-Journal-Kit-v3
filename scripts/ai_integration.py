@@ -11,6 +11,109 @@ from typing import Dict, List
 from entry_saver import create_entry
 
 
+# ---------------------------------------------------------------------------
+# Offline "Starter Guide" brain.
+# The AI features need an API key, which a brand-new learner will not have on
+# first run. Rather than leave the headline feature dark, we answer the most
+# common beginner questions locally (no key, no internet, no cost) in plain,
+# 10-year-old-friendly language. Anything outside this set falls through to a
+# friendly "here is how to switch on full AI answers" message.
+# Ordered most-specific first so e.g. "environment variable" wins over
+# "variable" and "github" wins over "git".
+# ---------------------------------------------------------------------------
+STARTER_BRAIN = [
+    (
+        ("environment variable", "environment"),
+        "An environment variable is a small setting your computer remembers and "
+        "shares with programs - like a sticky note the whole system can read. "
+        "Apps use them to find things like keys without writing them into the "
+        "code. Example: OPENAI_API_KEY holds your AI key.",
+    ),
+    (
+        ("api key", "api"),
+        "An API is a way for two programs to talk to each other, like a waiter "
+        "carrying your order to the kitchen and bringing food back. When this "
+        "app 'asks AI', it uses an API to send your question to an AI service "
+        "and get an answer. An API key is your personal password for that "
+        "service.",
+    ),
+    (
+        ("command line", "terminal", "shell"),
+        "The terminal (or command line) is a place where you type commands to "
+        "tell the computer what to do, instead of clicking buttons. It looks "
+        "plain but it is powerful. Tip: when a command works it often prints "
+        "nothing - silence usually means success.",
+    ),
+    (
+        ("folder", "directory"),
+        "A folder (also called a directory) is a container that holds files and "
+        "other folders, just like a real folder holds papers. Move into one in "
+        "the terminal with 'cd', and make a new one with 'mkdir myfolder'.",
+    ),
+    (
+        ("github",),
+        "GitHub is a website that stores your coding projects online so you can "
+        "back them up, show them off, and work with others. It is built on Git "
+        "(the saving tool). For learners, it is also where your portfolio of "
+        "projects lives.",
+    ),
+    (
+        ("git",),
+        "Git is a tool that saves snapshots of your project so you can track "
+        "changes and undo mistakes. Think of it like a save button with full "
+        "history. It is how most coders protect and version their work.",
+    ),
+    (
+        ("python",),
+        "Python is a beginner-friendly programming language known for being easy "
+        "to read. You write instructions in a file ending in .py and run it. It "
+        "is a great first language for coding, data, and AI.",
+    ),
+    (
+        ("function",),
+        "A function is a reusable block of code that does one job, like a recipe "
+        "you can run whenever you need it. You give it inputs and it gives back "
+        "a result. Example: a function that adds two numbers.",
+    ),
+    (
+        ("variable",),
+        "A variable is a name that holds a value so you can reuse it, like a "
+        "labelled box. Example: age = 10 puts 10 in a box called 'age'; later "
+        "you can use 'age' instead of writing 10 again.",
+    ),
+    (
+        ("traceback", "error", "bug"),
+        "A bug is a mistake in code that makes it behave wrong; an error message "
+        "is the computer telling you what went wrong and often where. Read the "
+        "last line first - it usually names the problem. Fixing bugs is normal "
+        "and a big part of learning.",
+    ),
+    (
+        ("create a file", "new file", "make a file", "file"),
+        "A file is a single saved item on your computer, like one page in a "
+        "notebook. It has a name and usually an ending like .txt or .py that "
+        "hints what is inside. Make one in the terminal with: touch notes.txt "
+        "then list it with: ls",
+    ),
+    (
+        ("programming", "coding", "code"),
+        "Coding (programming) is writing step-by-step instructions a computer "
+        "can follow to do a task. The computer does exactly what you say, so "
+        "being clear and precise matters. You learn by trying small things and "
+        "fixing what breaks.",
+    ),
+]
+
+
+def starter_brain_answer(question: str):
+    """Return a canned beginner answer if the question matches a known concept."""
+    q = (question or "").lower()
+    for keywords, answer in STARTER_BRAIN:
+        if any(keyword in q for keyword in keywords):
+            return answer
+    return None
+
+
 class AIResponse:
     """Represents an AI response with metadata."""
 
@@ -425,16 +528,61 @@ def main():
     # Check for API configuration
     ai = AIIntegration(plain=args.plain)
     if not ai.api_keys:
-        print("Warning: No AI API keys configured!")
-        print("\nTo use AI integration:")
-        print("1. Set environment variable: export OPENAI_API_KEY='your-key-here'")
-        print("2. Or create ~/.ai-journal-config.json with your API keys")
-        print("\nFor now, creating a manual entry...")
-        create_entry(args.question, "", ["question", "manual"])
+        _handle_no_key(args.question)
         return
 
     # Main AI query
     ai.ask_ai(args.question, args.source)
+
+
+def _handle_no_key(question: str) -> None:
+    """Answer offline when possible; otherwise guide the user kindly."""
+    answer = starter_brain_answer(question)
+
+    if answer:
+        print("\nFull AI is not switched on yet, but here is a Starter Guide answer:")
+        print("-" * 60)
+        print(answer)
+        print("-" * 60)
+        content = "\n".join(
+            [
+                "**Source:** Starter Guide (offline)",
+                "",
+                "## Answer",
+                "",
+                answer,
+                "",
+                "<!-- Switch on full AI answers anytime - see the README"
+                " section 'Turn on AI answers'. -->",
+            ]
+        )
+        create_entry(question, content, ["question", "starter-guide"])
+        print(
+            "\nSaved to your journal. Want answers to ANY question? Turn on full AI"
+            " (free options exist) - see the README section 'Turn on AI answers'."
+        )
+        return
+
+    # No canned answer: do not dead-end. Save the question and explain the
+    # one-time setup in plain language.
+    print("\nFull AI answers are not switched on yet, so I cannot answer that one.")
+    print("Good news: turning it on is a one-time setup, and there are free options.")
+    print("  - Easiest free options: a Google Gemini or Groq free API key.")
+    print("  - Or an OpenAI key if you have one.")
+    print("  - Full steps are in the README section 'Turn on AI answers'.")
+    create_entry(
+        question,
+        "\n".join(
+            [
+                "## Answer",
+                "",
+                "<!-- Answer pending: turn on full AI to answer this question."
+                " See the README section 'Turn on AI answers'. -->",
+            ]
+        ),
+        ["question", "unanswered"],
+    )
+    print("\nI saved your question so you can come back to it once AI is on.")
 
 
 if __name__ == "__main__":

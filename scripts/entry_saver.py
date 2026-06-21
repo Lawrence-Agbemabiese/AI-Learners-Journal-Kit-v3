@@ -156,27 +156,35 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
     if content:
         content_sections.append(content)
     else:
-        # Default template
+        # Default template.
+        # NOTE: guidance hints use HTML comments (<!-- ... -->) so they are
+        # invisible when the note is rendered as Markdown. This keeps empty
+        # entries looking clean (portfolio-ready) while still guiding the
+        # writer in the raw file. Hints are removed automatically as each
+        # section gets real content (see auto_append.append_to_entry).
         template = """## Key Points
-- [Add your key insights here]
+
+<!-- One or two big things you learned. Delete this line as you fill it in. -->
 
 ## Questions & Answers
 
-[Add your Q&A content here]
+<!-- Questions you asked and the answers you found. -->
 
 ## Follow-up Actions
-- [ ] [Add any next steps]
+
+<!-- - [ ] Your next step -->
 
 ---
 
 ## Full Session Content
 
-[Add your detailed content here]
+<!-- Your detailed notes, commands you ran, and what happened. -->
 
 ---
 
 ## Reflection
-[Add your thoughts and reflections here]"""
+
+<!-- What did you learn? What confused you? What will you try next? -->"""
         content_sections.append(template)
 
     entry_content = "\n".join(content_sections)

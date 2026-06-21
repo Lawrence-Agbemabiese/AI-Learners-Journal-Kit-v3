@@ -97,8 +97,30 @@ def get_latest_entry():
     return latest
 
 
-def append_to_entry(entry, content, section="Q&A"):
-    """Append content to an existing entry."""
+# Map friendly section names to the actual Markdown headers in an entry.
+SECTION_HEADERS = {
+    "reflection": "## Reflection",
+    "key points": "## Key Points",
+    "key": "## Key Points",
+    "questions & answers": "## Questions & Answers",
+    "q&a": "## Questions & Answers",
+    "qa": "## Questions & Answers",
+    "full session content": "## Full Session Content",
+    "full session": "## Full Session Content",
+    "full": "## Full Session Content",
+}
+
+
+def _is_placeholder(line):
+    """True if a line is a leftover template hint (bracket or HTML comment)."""
+    s = line.strip()
+    return (s.startswith("[") and s.endswith("]")) or (
+        s.startswith("<!--") and s.endswith("-->")
+    )
+
+
+def append_to_entry(entry, content, section="Reflection"):
+    """Append content under the requested section of an existing entry."""
     journal_dir = get_journal_dir()
     entry_path = journal_dir / entry["filename"]
 
@@ -107,42 +129,39 @@ def append_to_entry(entry, content, section="Q&A"):
         sys.exit(1)
 
     # Read current content
-    with open(entry_path, "r") as f:
+    with open(entry_path, "r", encoding="utf-8") as f:
         current_content = f.read()
 
     # Create timestamp for the new content
     timestamp = datetime.now().strftime("%I:%M %p")
+    new_block = ["", f"### Update - {timestamp}", "", content, ""]
 
-    # Format new content with timestamp
-    new_content = f"\n### Update - {timestamp}\n\n{content}\n"
+    header = SECTION_HEADERS.get((section or "").lower().strip(), "## Reflection")
+    lines = current_content.split("\n")
 
-    # Find where to insert based on section
-    if section.lower() == "q&a" or section.lower() == "qa":
-        # Insert after "## Questions & Answers" section
-        qa_pattern = r"(## Questions & Answers\n)"
-        if re.search(qa_pattern, current_content):
-            updated_content = re.sub(
-                qa_pattern, f"\\1{new_content}\n", current_content, count=1
-            )
-        else:
-            # If Q&A section doesn't exist, add before Follow-up Actions
-            followup_pattern = r"(## Follow-up Actions)"
-            if re.search(followup_pattern, current_content):
-                updated_content = re.sub(
-                    followup_pattern,
-                    f"## Questions & Answers{new_content}\n\\1",
-                    current_content,
-                    count=1,
-                )
-            else:
-                # Just append to the end
-                updated_content = current_content + new_content
+    # Locate the chosen section header.
+    insert_idx = None
+    for i, line in enumerate(lines):
+        if line.strip() == header:
+            insert_idx = i + 1
+            break
+
+    if insert_idx is None:
+        # Section header missing: append to the end rather than lose the note.
+        updated_content = current_content.rstrip("\n") + "\n" + "\n".join(new_block) + "\n"
     else:
-        # For other sections or general content, append to the end
-        updated_content = current_content + new_content
+        # Skip blank lines after the header, then remove one leftover
+        # placeholder hint if present, so the section reads cleanly.
+        j = insert_idx
+        while j < len(lines) and lines[j].strip() == "":
+            j += 1
+        if j < len(lines) and _is_placeholder(lines[j]):
+            del lines[j]
+        rebuilt = lines[:insert_idx] + new_block + lines[insert_idx:]
+        updated_content = "\n".join(rebuilt)
 
     # Write updated content
-    with open(entry_path, "w") as f:
+    with open(entry_path, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
     # Update word count in index
@@ -154,7 +173,8 @@ def append_to_entry(entry, content, section="Q&A"):
 
     save_index(index_data)
 
-    status("Appended content to", entry["topic"])
+    status("Added your note to", entry["topic"])
+    status("Section", header.lstrip("# ").strip())
     status("File", entry_path)
     status("Time", timestamp)
 

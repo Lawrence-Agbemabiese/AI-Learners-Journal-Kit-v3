@@ -80,9 +80,11 @@ def test_interactive_new_prompts_for_topic_and_tags(tmp_path):
 
 def test_interactive_append_prompts_for_content(tmp_path):
     run_cli(tmp_path, "new", "Prompt Append")
+    # Interactive append now: confirm target (Enter = yes), enter content,
+    # blank line to finish, then choose a section (Enter = Reflection).
     result = run_cli_with_input(
         tmp_path,
-        "First prompted line\nSecond prompted line\n\n",
+        "\nFirst prompted line\nSecond prompted line\n\n\n",
         "append",
         "latest",
     )
@@ -108,7 +110,7 @@ def test_entry_ids_are_not_reused_after_index_deletion(tmp_path):
     assert index["next_id"] == 3
 
 
-def test_ai_integration_without_api_key_creates_manual_entry(tmp_path):
+def _run_ai_integration(tmp_path, question):
     env = os.environ.copy()
     env.update(
         {
@@ -120,18 +122,34 @@ def test_ai_integration_without_api_key_creates_manual_entry(tmp_path):
     env.pop("ANTHROPIC_API_KEY", None)
     env.pop("GEMINI_API_KEY", None)
 
-    result = subprocess.run(
-        [sys.executable, str(AI_INTEGRATION), "What is testing?"],
+    return subprocess.run(
+        [sys.executable, str(AI_INTEGRATION), question],
         text=True,
         capture_output=True,
         env=env,
         check=False,
     )
 
+
+def test_ai_integration_without_api_key_saves_followup_entry(tmp_path):
+    # No key + no canned answer: do not dead-end; save the question to revisit.
+    result = _run_ai_integration(tmp_path, "How do I scale a Kubernetes cluster?")
+
     assert result.returncode == 0
     index = read_index(tmp_path)
-    assert index["entries"][0]["topic"] == "What is testing?"
-    assert "manual" in index["entries"][0]["tags"]
+    assert index["entries"][0]["topic"] == "How do I scale a Kubernetes cluster?"
+    assert "unanswered" in index["entries"][0]["tags"]
+    result.stdout.encode("ascii")
+
+
+def test_ai_integration_starter_brain_answers_common_question(tmp_path):
+    # No key but a known beginner concept: answered offline and saved.
+    result = _run_ai_integration(tmp_path, "What is an API?")
+
+    assert result.returncode == 0
+    assert "Starter Guide" in result.stdout
+    index = read_index(tmp_path)
+    assert "starter-guide" in index["entries"][0]["tags"]
     result.stdout.encode("ascii")
 
 
