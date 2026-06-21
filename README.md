@@ -105,21 +105,32 @@ Nothing is wrong with the file - this is the normal warning for new downloads.
 
 **macOS** ("Apple could not verify..."): click **Done** (not "Move to Trash"),
 then open **System Settings -> Privacy & Security**, scroll to the Security
-section, and click **Open Anyway** next to the app name. Confirm once more.
-Power-user shortcut, run once in Terminal inside the folder:
+section, and click **Open Anyway** next to "Start AI Journal.command". Enter your
+password if asked, then click **Open**. After this, double-clicking works.
+
+**Windows** ("Windows protected your PC"): click **More info**, then **Run
+anyway**.
+
+### Still stuck on macOS? Run it from the Terminal
+
+This always works, even when the launcher is blocked:
+
+1. Open the **Terminal** app (press Cmd+Space, type `Terminal`, press Return).
+2. Type `cd ` (with a trailing space) but do **not** press Return yet.
+3. Drag the `ai-coding-journal-starter` folder onto the Terminal window - its
+   path is filled in for you - then press Return.
+4. Run:
+
+   ```bash
+   python3 scripts/journal_cli.py menu
+   ```
+
+Power-user shortcut to clear the quarantine flag once, then double-click as
+normal:
 
 ```bash
 xattr -dr com.apple.quarantine ai-coding-journal-starter
 ```
-
-You can always skip the launcher entirely and just run:
-
-```bash
-python3 scripts/journal_cli.py menu
-```
-
-**Windows** ("Windows protected your PC"): click **More info**, then **Run
-anyway**.
 
 ## Turn on AI answers
 
