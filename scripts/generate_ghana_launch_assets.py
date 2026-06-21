@@ -377,8 +377,29 @@ def facilitator_pack() -> DocSpec:
     )
 
 
-def write_readme(path: Path, title: str, lines: list[str]) -> None:
-    path.write_text("# " + title + "\n\n" + "\n".join(lines) + "\n", encoding="utf-8")
+def write_readme(path: Path, title: str, lines: list[str], crlf: bool = False) -> None:
+    newline = "\r\n" if crlf else "\n"
+    text = "# " + title + newline + newline + newline.join(lines) + newline
+    # newline="" disables newline translation so CRLF is preserved exactly.
+    path.write_text(text, encoding="utf-8", newline="")
+
+
+# Minimal runnable subset of the v3 app shipped in the FREE bundle.
+# Excludes the paid value (12-week PDFs, facilitator guide, installers, tests,
+# visuals, promo, full release bundle) while remaining a working journaling app.
+STARTER_MEMBERS = [
+    ("ai-journal", "ai-coding-journal-starter/ai-journal"),
+    ("Start AI Journal.command", "ai-coding-journal-starter/Start AI Journal.command"),
+    ("Start AI Journal.bat", "ai-coding-journal-starter/Start AI Journal.bat"),
+    ("scripts/journal_cli.py", "ai-coding-journal-starter/scripts/journal_cli.py"),
+    ("scripts/entry_saver.py", "ai-coding-journal-starter/scripts/entry_saver.py"),
+    ("scripts/auto_append.py", "ai-coding-journal-starter/scripts/auto_append.py"),
+    ("scripts/ai_integration.py", "ai-coding-journal-starter/scripts/ai_integration.py"),
+    ("requirements.txt", "ai-coding-journal-starter/requirements.txt"),
+    ("README.md", "ai-coding-journal-starter/README.md"),
+    ("docs/Quick_Start.md", "ai-coding-journal-starter/docs/Quick_Start.md"),
+    ("LICENSE", "ai-coding-journal-starter/LICENSE"),
+]
 
 
 def build_bundles(files: list[Path]) -> dict[str, str]:
@@ -396,11 +417,39 @@ def build_bundles(files: list[Path]) -> dict[str, str]:
     readme_facilitator = DIST / "README-facilitator.txt"
     write_readme(
         readme_free,
-        "Free 7-Day AI Coding Journal",
+        "Free 7-Day AI Coding Journal + Starter App",
         [
-            "Start here if you are learning coding, AI, data, cybersecurity, or digital skills in Ghana.",
-            "Use this journal for seven learning sessions, then upgrade to the 12-week Student Portfolio Pack when you are ready.",
+            "Thank you for downloading the free starter from AgenticPPA.",
+            "",
+            "WHAT IS IN THIS ZIP",
+            "1. ghana-ai-coding-journal-7-day-free.pdf  - a printable, fillable 7-day journal.",
+            "2. ai-coding-journal-starter (folder)      - a small app that saves your learning entries on your computer.",
+            "3. README.txt                              - this file.",
+            "",
+            "OPTION A - JUST USE THE JOURNAL (no setup)",
+            "Open the PDF and fill it in for seven learning sessions. That is all you need to start.",
+            "",
+            "OPTION B - RUN THE STARTER APP (optional, needs Python 3)",
+            "Windows: open the ai-coding-journal-starter folder and double-click \"Start AI Journal.bat\".",
+            "Mac: open the ai-coding-journal-starter folder and double-click \"Start AI Journal.command\".",
+            "     (If Mac blocks it the first time: right-click the file, choose Open, then Open again.)",
+            "If double-click does not work, open a terminal in that folder and run:",
+            "     python3 scripts/journal_cli.py menu",
+            "Your entries are saved in a folder called AI-Journal in your home directory.",
+            "",
+            "NEED PYTHON?",
+            "Install it free from https://www.python.org/downloads/ then try Option B again.",
+            "The optional AI helper needs an OpenAI key; everything else works without it.",
+            "",
+            "WANT THE FULL SYSTEM?",
+            "The paid Student Portfolio Pack adds the 12-week portfolio journal, prompt log, project",
+            "case-study and GitHub README templates, an internship and scholarship tracker, and the",
+            "complete toolkit. See https://agenticppa.com/ghana-ai-coding-journal",
+            "",
+            "Support: agbe@udel.edu",
+            "Independent learning resource. Not an official government product.",
         ],
+        crlf=True,
     )
     write_readme(
         readme_paid,
@@ -430,6 +479,7 @@ def build_bundles(files: list[Path]) -> dict[str, str]:
         free_zip,
         [
             (free_pdf, free_pdf.name),
+            *[(ROOT / src, arc) for src, arc in STARTER_MEMBERS],
             (readme_free, "README.txt"),
         ],
     )
