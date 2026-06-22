@@ -155,6 +155,33 @@ def test_static_index_served(server):
     assert "AI Coding Journal" in html
 
 
+def test_profile_default_not_set(server):
+    status, body = get(server, "/api/profile")
+    assert status == 200
+    assert body["name_set"] is False
+    assert body["name"]  # falls back to a tidied OS name
+
+
+def test_set_and_persist_profile(server):
+    status, body = post(server, "/api/profile", {"name": "Ama"})
+    assert status == 200 and body["ok"] is True
+    assert body["name"] == "Ama" and body["name_set"] is True
+
+    # Reflected in stats and re-readable.
+    _, stats = get(server, "/api/stats")
+    assert stats["name"] == "Ama" and stats["name_set"] is True
+    assert stats["avatar"] == "A"
+    _, prof = get(server, "/api/profile")
+    assert prof["name"] == "Ama"
+
+
+def test_clear_profile_falls_back(server):
+    post(server, "/api/profile", {"name": "Ama"})
+    status, body = post(server, "/api/profile", {"name": ""})
+    assert status == 200
+    assert body["name_set"] is False
+
+
 def test_shares_storage_with_cli(server, tmp_path):
     """An entry made over the API must be visible to the CLI modules."""
     post(server, "/api/entries", {"topic": "Shared storage check"})

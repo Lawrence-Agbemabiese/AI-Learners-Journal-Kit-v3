@@ -19,6 +19,7 @@ Run it:  python3 scripts/web_server.py
 import getpass
 import json
 import os
+import re
 import sys
 import threading
 import webbrowser
@@ -122,6 +123,45 @@ def _entry_summary(entry: dict, today: date | None = None) -> dict:
     }
 
 
+def _profile_path() -> Path:
+    """Where the learner's display name is stored (local, alongside the index)."""
+    return get_journal_dir() / "profile.json"
+
+
+def _load_profile() -> dict:
+    try:
+        return json.loads(_profile_path().read_text(encoding="utf-8")) or {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_profile(profile: dict) -> None:
+    path = _profile_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(profile, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(path)
+
+
+def _display_name() -> tuple[str, bool]:
+    """Resolve the greeting name.
+
+    Order: a name the learner saved -> the AI_JOURNAL_NAME env var -> a tidied
+    version of the OS account name. Returns (name, name_set) where name_set is
+    True only when the learner (or env) chose the name explicitly.
+    """
+    saved = (_load_profile().get("name") or "").strip()
+    if saved:
+        return saved, True
+    env = (os.getenv("AI_JOURNAL_NAME") or "").strip()
+    if env:
+        return env, True
+    raw = getpass.getuser() or "there"
+    first = re.split(r"[._\-\s]+", raw)[0] or raw
+    pretty = (first[:1].upper() + first[1:]) if first else "there"
+    return pretty, False
+
+
 def _all_entries_sorted() -> list[dict]:
     """All index entries, newest first."""
     index = ensure_index()
@@ -176,11 +216,11 @@ def _compute_stats() -> dict:
     if total >= 7:
         badges.append({"icon": "\U0001F4DA", "label": "7 entries"})
 
-    name = (getpass.getuser() or "there").split()[0]
-    name = name[:1].upper() + name[1:] if name else "there"
+    name, name_set = _display_name()
 
     return {
         "name": name,
+        "name_set": name_set,
         "avatar": (name[:1].upper() if name else "A"),
         "streak": streak,
         "days_active": len(active_days),
@@ -220,6 +260,18 @@ def _append_entry(payload: dict) -> dict:
         raise LookupError(f"No entry found matching '{target}'.")
     append_to_entry(entry, content, section)
     return {"ok": True, "topic": entry.get("topic", "")}
+
+
+def _set_profile(payload: dict) -> dict:
+    name = (payload.get("name") or "").strip()
+    profile = _load_profile()
+    if name:
+        profile["name"] = name[:40]
+    else:
+        profile.pop("name", None)  # empty clears it, falling back to OS name
+    _save_profile(profile)
+    resolved, name_set = _display_name()
+    return {"ok": True, "name": resolved, "name_set": name_set}
 
 
 def _ask(payload: dict) -> dict:
@@ -308,6 +360,8 @@ class JournalHandler(BaseHTTPRequestHandler):
                 return self._send_json(_append_entry(payload))
             if parsed.path == "/api/ask":
                 return self._send_json(_ask(payload))
+            if parsed.path == "/api/profile":
+                return self._send_json(_set_profile(payload))
         except ValueError as exc:
             return self._send_json({"error": str(exc)}, 400)
         except LookupError as exc:
@@ -322,6 +376,9 @@ class JournalHandler(BaseHTTPRequestHandler):
                 return self._send_json({"ok": True})
             if path == "/api/stats":
                 return self._send_json(_compute_stats())
+            if path == "/api/profile":
+                name, name_set = _display_name()
+                return self._send_json({"name": name, "name_set": name_set})
             if path == "/api/entries":
                 today = date.today()
                 limit_vals = query.get("limit")

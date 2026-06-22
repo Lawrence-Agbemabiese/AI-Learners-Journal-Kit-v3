@@ -29,6 +29,8 @@
     display:flex;align-items:center;justify-content:center;font-weight:800;}
   .hello{font-size:22px;font-weight:800;margin:14px 2px 2px;letter-spacing:-.3px;}
   .hello .em{color:var(--coral);}
+  .namelink{font-size:13px;font-weight:800;color:var(--teal);text-decoration:none;white-space:nowrap;}
+  .namelink:hover{text-decoration:underline;}
   .sub{color:var(--muted);font-weight:700;margin:0 2px 18px;font-size:14px;}
   .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
   .tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);}
@@ -184,6 +186,7 @@ async function apiPost(path, body){
 }
 
 let entriesCache = [];      // newest-first, from /api/entries
+let lastStats = {};         // most recent /api/stats payload
 const HC=["#ECE7DF","#BFE6DE","#7FCFC2","#36A493","#0F766E"];
 
 function esc(s){return (s+"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -192,14 +195,18 @@ function esc(s){return (s+"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":
 async function loadStats(){
   try{
     const s = await api("/api/stats");
+    lastStats = s;
     document.getElementById("tStreak").textContent = s.streak;
     document.getElementById("streakPill").textContent = s.streak + "-day streak";
     document.getElementById("tEntries").textContent = s.total_entries;
     document.getElementById("tDays").textContent = s.days_active;
     document.getElementById("tBadges").textContent = s.badge_count;
     document.getElementById("avatar").textContent = s.avatar || "A";
+    const editLink = ' <a href="#" onclick="openName();return false" class="namelink">'
+      + (s.name_set ? '✏️ edit name' : '✏️ set your name') + '</a>';
     document.getElementById("hello").innerHTML = "Hey " + esc(s.name) + "! " +
-      (s.total_entries ? '<span class="em">Nice work.</span>' : '<span class="em">Let’s begin.</span>');
+      (s.total_entries ? '<span class="em">Nice work.</span>' : '<span class="em">Let’s begin.</span>')
+      + editLink;
     document.getElementById("subline").textContent = s.streak
       ? "You're on a " + s.streak + "-day streak — write one line today to keep it alive."
       : "Write one line today to start your streak.";
@@ -270,6 +277,24 @@ function focusSearch(){document.getElementById("search").focus();window.scrollTo
 function show(html){document.getElementById("modal").innerHTML=html;document.getElementById("overlay").classList.add("on");}
 function closeModal(){document.getElementById("overlay").classList.remove("on");}
 document.getElementById("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeModal();});
+
+// ---- Set your name --------------------------------------------------------
+function openName(){
+  const current = lastStats.name_set ? esc(lastStats.name) : "";
+  show(
+  '<h3>What should we call you?</h3><p class="h">This shows in your greeting. It stays on your computer — nothing is uploaded.</p>'+
+  '<label>Your name</label><input id="m_name" value="'+current+'" placeholder="e.g. Ama" onkeydown="if(event.key===\'Enter\')saveName()" />'+
+  '<div class="row"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary" id="m_namebtn" onclick="saveName()">Save</button></div>');
+  setTimeout(()=>{const i=document.getElementById("m_name");i.focus();i.select();},50);}
+async function saveName(){
+  const n=document.getElementById("m_name").value.trim();
+  if(!n){toast("Type a name 🙂");return;}
+  document.getElementById("m_namebtn").disabled=true;
+  try{
+    const data = await apiPost("/api/profile", {name:n});
+    closeModal(); await loadStats(); toast("Nice to meet you, "+esc(data.name)+" 👋");
+  }catch(e){ toast("Could not save: "+e.message); document.getElementById("m_namebtn").disabled=false; }
+}
 
 // ---- New entry ------------------------------------------------------------
 function openNew(){show(
