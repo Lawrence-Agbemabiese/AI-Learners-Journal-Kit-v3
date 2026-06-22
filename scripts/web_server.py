@@ -103,9 +103,20 @@ def _entry_preview(entry: dict) -> str:
         line = raw.strip()
         if not line:
             continue
-        if line.startswith(("#", "<!--", "---", "**", "###")):
+        # Drop a leading bullet so we can detect placeholders and show clean text.
+        core = line[2:].strip() if line.startswith(("- ", "* ")) else line
+        if not core:
             continue
-        return line if len(line) <= 140 else line[:137] + "..."
+        # Skip headings, metadata, rules, and comment hints.
+        if core.startswith(("#", "<!--", "---", "**", ">")):
+            continue
+        # Skip legacy bracket-style template placeholders, e.g.
+        # "[Add your key insights here]" or task hints like "[ ] Your next step".
+        if core.startswith("[") and core.endswith("]"):
+            continue
+        if core.startswith(("[ ]", "[]")):
+            continue
+        return core if len(core) <= 140 else core[:137] + "..."
     return ""
 
 

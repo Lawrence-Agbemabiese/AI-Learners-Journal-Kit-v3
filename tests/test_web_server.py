@@ -155,6 +155,24 @@ def test_static_index_served(server):
     assert "AI Coding Journal" in html
 
 
+def test_entry_preview_skips_placeholders(tmp_path, monkeypatch):
+    monkeypatch.setenv("AI_JOURNAL_DIR", str(tmp_path))
+    import web_server
+
+    p = tmp_path / "e.md"
+    # Empty template entry (legacy bracket placeholder) -> no preview leaked.
+    p.write_text(
+        "# Topic\n\n**Date:** x\n\n## Key Points\n\n- [Add your key insights here]\n\n"
+        "## Reflection\n\n<!-- hint -->\n",
+        encoding="utf-8",
+    )
+    assert web_server._entry_preview({"filename": "e.md"}) == ""
+
+    # Real content -> shown without the leading bullet.
+    p.write_text("# Topic\n\n## Key Points\n\n- I learned about loops.\n", encoding="utf-8")
+    assert web_server._entry_preview({"filename": "e.md"}) == "I learned about loops."
+
+
 def test_profile_default_not_set(server):
     status, body = get(server, "/api/profile")
     assert status == 200
