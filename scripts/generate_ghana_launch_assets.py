@@ -496,11 +496,27 @@ def build_bundles(files: list[Path]) -> dict[str, str]:
         ],
     )
 
+    # Files that must be executable after the user unzips, so double-clicking
+    # the launchers (and running the wrappers) works regardless of the exec
+    # bit on the source checkout. Without this, a freshly unzipped .command
+    # opens in a text editor instead of running.
+    def _is_executable_member(arcname: str) -> bool:
+        name = arcname.rsplit("/", 1)[-1]
+        return name.endswith((".command", ".sh")) or name == "ai-journal"
+
     def zip_files(zip_path: Path, members: list[tuple[Path, str]]) -> None:
         with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for source, arcname in members:
-                if source.exists():
-                    zf.write(source, arcname)
+                if not source.exists():
+                    continue
+                info = zipfile.ZipInfo.from_file(source, arcname)
+                if _is_executable_member(arcname):
+                    # rwxr-xr-x for launchers/wrappers; rw-r--r-- otherwise.
+                    info.external_attr = (0o755 << 16) | (info.external_attr & 0xFFFF)
+                else:
+                    info.external_attr = (0o644 << 16) | (info.external_attr & 0xFFFF)
+                with open(source, "rb") as fh:
+                    zf.writestr(info, fh.read(), compress_type=zipfile.ZIP_DEFLATED)
 
     zip_files(
         free_zip,
