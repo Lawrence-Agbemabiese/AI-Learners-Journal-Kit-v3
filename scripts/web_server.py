@@ -34,7 +34,15 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from ai_integration import answer_offline  # noqa: E402
+from ai_integration import (  # noqa: E402
+    PROVIDERS,
+    answer_offline,
+    get_active_provider,
+    live_answer,
+    load_config,
+    save_config,
+    save_live_answer,
+)
 from auto_append import append_to_entry, find_entry, get_latest_entry  # noqa: E402
 from entry_saver import create_entry, get_journal_dir  # noqa: E402
 from entry_saver import load_index as ensure_index  # noqa: E402
@@ -285,15 +293,87 @@ def _set_profile(payload: dict) -> dict:
     return {"ok": True, "name": resolved, "name_set": name_set}
 
 
+def _provider_catalog() -> list[dict]:
+    return [
+        {"id": pid, "label": m["label"], "get_key_url": m["get_key_url"]}
+        for pid, m in PROVIDERS.items()
+    ]
+
+
+def _ai_status() -> dict:
+    prov = get_active_provider()
+    base = {"providers": _provider_catalog()}
+    if not prov:
+        base.update({"enabled": False, "provider": None, "label": None, "masked": None})
+        return base
+    pid, key, _model = prov
+    masked = ("••••" + key[-4:]) if len(key) >= 4 else "••••"
+    base.update(
+        {"enabled": True, "provider": pid, "label": PROVIDERS[pid]["label"], "masked": masked}
+    )
+    return base
+
+
+def _set_ai_key(payload: dict) -> dict:
+    provider = (payload.get("provider") or "").strip().lower()
+    api_key = (payload.get("api_key") or "").strip()
+    if provider not in PROVIDERS:
+        raise ValueError("Choose a valid AI provider.")
+    if not api_key:
+        raise ValueError("Paste your API key.")
+    # Validate the key with a tiny live call so bad keys are caught immediately.
+    try:
+        live_answer("Reply with the single word: OK", provider, api_key, timeout=20)
+    except RuntimeError as exc:
+        raise ValueError(str(exc))
+    cfg = load_config()
+    cfg.setdefault("api_keys", {})[provider] = api_key
+    cfg["provider"] = provider
+    save_config(cfg)
+    return _ai_status()
+
+
+def _disconnect_ai(_payload: dict) -> dict:
+    cfg = load_config()
+    prov = cfg.get("provider")
+    if prov and isinstance(cfg.get("api_keys"), dict):
+        cfg["api_keys"].pop(prov, None)
+    cfg["provider"] = None
+    save_config(cfg)
+    return _ai_status()
+
+
 def _ask(payload: dict) -> dict:
     question = (payload.get("question") or "").strip()
     if not question:
         raise ValueError("Type a question first.")
+
+    prov = get_active_provider()
+    if prov:
+        pid, key, model = prov
+        try:
+            answer = live_answer(question, pid, key, model)
+            label = save_live_answer(question, answer, pid)
+            return {"ok": True, "matched": True, "answer": answer, "source": label, "message": None}
+        except RuntimeError as exc:
+            answer, matched, _ = answer_offline(question)
+            msg = f"Live AI didn't answer ({exc})."
+            if matched:
+                msg += " Showing the offline Starter Guide instead."
+            return {
+                "ok": True,
+                "matched": matched,
+                "answer": answer,
+                "source": "Starter Guide" if matched else None,
+                "message": msg,
+            }
+
     answer, matched, _ = answer_offline(question)
     return {
         "ok": True,
         "matched": matched,
         "answer": answer,
+        "source": "Starter Guide" if matched else None,
         "message": (
             None
             if matched
@@ -373,6 +453,10 @@ class JournalHandler(BaseHTTPRequestHandler):
                 return self._send_json(_ask(payload))
             if parsed.path == "/api/profile":
                 return self._send_json(_set_profile(payload))
+            if parsed.path == "/api/ai/key":
+                return self._send_json(_set_ai_key(payload))
+            if parsed.path == "/api/ai/disconnect":
+                return self._send_json(_disconnect_ai(payload))
         except ValueError as exc:
             return self._send_json({"error": str(exc)}, 400)
         except LookupError as exc:
@@ -390,6 +474,8 @@ class JournalHandler(BaseHTTPRequestHandler):
             if path == "/api/profile":
                 name, name_set = _display_name()
                 return self._send_json({"name": name, "name_set": name_set})
+            if path == "/api/ai/status":
+                return self._send_json(_ai_status())
             if path == "/api/entries":
                 today = date.today()
                 limit_vals = query.get("limit")

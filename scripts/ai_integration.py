@@ -5,8 +5,10 @@ import argparse
 import json
 import os
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 from entry_saver import create_entry
 
@@ -112,6 +114,176 @@ def starter_brain_answer(question: str):
         if any(keyword in q for keyword in keywords):
             return answer
     return None
+
+
+# ---------------------------------------------------------------------------
+# Live AI over plain HTTPS (standard library only).
+# We deliberately avoid the optional `openai` package here so the web "Turn on
+# AI" feature works on a fresh machine with nothing to pip-install. Keys live in
+# ~/.ai-journal-config.json (the same file the CLI already reads) and are sent
+# only to the provider the learner chose - never to us.
+# ---------------------------------------------------------------------------
+
+SYSTEM_PROMPT = (
+    "You are a helpful assistant providing clear, accurate explanations for "
+    "learning purposes. Be concise but thorough, and friendly to beginners."
+)
+
+# provider id -> metadata. "style" selects the request/response shape.
+PROVIDERS: Dict[str, Dict[str, str]] = {
+    "groq": {
+        "label": "Groq",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "model": "llama-3.1-8b-instant",
+        "style": "openai",
+        "env": "GROQ_API_KEY",
+        "get_key_url": "https://console.groq.com/keys",
+    },
+    "gemini": {
+        "label": "Gemini",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+        "model": "gemini-1.5-flash",
+        "style": "gemini",
+        "env": "GEMINI_API_KEY",
+        "get_key_url": "https://aistudio.google.com/app/apikey",
+    },
+    "openai": {
+        "label": "ChatGPT",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "model": "gpt-4o-mini",
+        "style": "openai",
+        "env": "OPENAI_API_KEY",
+        "get_key_url": "https://platform.openai.com/api-keys",
+    },
+}
+
+
+def config_path() -> Path:
+    """Location of the local AI config (overridable for tests)."""
+    override = os.getenv("AI_JOURNAL_CONFIG")
+    return Path(override) if override else Path.home() / ".ai-journal-config.json"
+
+
+def load_config() -> dict:
+    try:
+        return json.loads(config_path().read_text(encoding="utf-8")) or {}
+    except (OSError, ValueError):
+        return {}
+
+
+def save_config(cfg: dict) -> None:
+    path = config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(path)
+
+
+def get_active_provider() -> Optional[Tuple[str, str, str]]:
+    """Return (provider_id, api_key, model) for the active provider, or None.
+
+    Prefers an explicit choice saved in the config file, then falls back to a
+    provider key found in the environment.
+    """
+    cfg = load_config()
+    keys = cfg.get("api_keys", {}) or {}
+    model = cfg.get("model")
+    prov = cfg.get("provider")
+    if prov in PROVIDERS and keys.get(prov):
+        return prov, keys[prov], model or PROVIDERS[prov]["model"]
+    for pid, meta in PROVIDERS.items():
+        env_key = os.getenv(meta["env"])
+        if env_key:
+            return pid, env_key, model or meta["model"]
+    return None
+
+
+def _http_post_json(url: str, body: dict, headers: dict, timeout: int) -> dict:
+    req = urllib.request.Request(
+        url, data=json.dumps(body).encode("utf-8"), headers=headers, method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        if exc.code in (401, 403):
+            raise RuntimeError("That API key was rejected. Check it and try again.")
+        detail = ""
+        try:
+            detail = exc.read().decode("utf-8")[:160]
+        except Exception:
+            pass
+        raise RuntimeError(f"AI provider error ({exc.code}). {detail}".strip())
+    except urllib.error.URLError:
+        raise RuntimeError("Could not reach the AI provider. Check your internet.")
+    except (ValueError, TimeoutError):
+        raise RuntimeError("The AI provider sent an unreadable response.")
+
+
+def live_answer(
+    question: str, provider: str, api_key: str, model: Optional[str] = None,
+    timeout: int = 30,
+) -> str:
+    """Ask a live AI provider over HTTPS and return the answer text.
+
+    Raises RuntimeError with a beginner-friendly message on any failure.
+    """
+    if provider not in PROVIDERS:
+        raise RuntimeError(f"Unknown AI provider: {provider}")
+    meta = PROVIDERS[provider]
+    model = model or meta["model"]
+
+    if meta["style"] == "openai":
+        body = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": question},
+            ],
+            "max_tokens": 800,
+            "temperature": 0.7,
+        }
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        data = _http_post_json(meta["url"], body, headers, timeout)
+        try:
+            return data["choices"][0]["message"]["content"].strip()
+        except (KeyError, IndexError, AttributeError):
+            raise RuntimeError("The AI provider sent an unexpected response.")
+
+    # gemini style
+    url = meta["url"].format(model=model) + f"?key={api_key}"
+    body = {
+        "contents": [{"parts": [{"text": question}]}],
+        "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+    }
+    data = _http_post_json(url, body, {"Content-Type": "application/json"}, timeout)
+    try:
+        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except (KeyError, IndexError, AttributeError):
+        raise RuntimeError("The AI provider sent an unexpected response.")
+
+
+def save_live_answer(question: str, answer: str, provider: str) -> str:
+    """Save a live AI answer to the journal; return the provider's display label."""
+    label = PROVIDERS.get(provider, {}).get("label", provider.title())
+    content = "\n".join(
+        ["**Source:** " + label, "", "## AI Response", "", answer, ""]
+    )
+    create_entry(
+        question,
+        content,
+        ["question", "ai-assisted", provider],
+        ai_metadata={
+            "source": label,
+            "confidence": "medium",
+            "risk_level": "low",
+            "verification_status": "untested",
+        },
+    )
+    return label
 
 
 class AIResponse:

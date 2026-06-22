@@ -25,7 +25,8 @@ if str(SCRIPTS) not in sys.path:
 def server(tmp_path, monkeypatch):
     """Start the web server on a free port against a temp journal dir."""
     monkeypatch.setenv("AI_JOURNAL_DIR", str(tmp_path / "AI-Journal"))
-    for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY"):
+    monkeypatch.setenv("AI_JOURNAL_CONFIG", str(tmp_path / "ai-config.json"))
+    for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "GROQ_API_KEY"):
         monkeypatch.delenv(key, raising=False)
 
     import web_server  # imported after env is set
@@ -198,6 +199,70 @@ def test_clear_profile_falls_back(server):
     status, body = post(server, "/api/profile", {"name": ""})
     assert status == 200
     assert body["name_set"] is False
+
+
+def test_ai_status_default_disabled(server):
+    status, body = get(server, "/api/ai/status")
+    assert status == 200
+    assert body["enabled"] is False
+    ids = {p["id"] for p in body["providers"]}
+    assert {"groq", "gemini", "openai"} <= ids
+
+
+def test_set_ai_key_then_ask_live(server, monkeypatch):
+    import web_server
+
+    monkeypatch.setattr(web_server, "live_answer", lambda *a, **k: "LIVE: a folder holds files.")
+    status, body = post(server, "/api/ai/key", {"provider": "groq", "api_key": "test-key-1234"})
+    assert status == 200 and body["enabled"] is True
+    assert body["label"] == "Groq" and body["masked"].endswith("1234")
+
+    status, ask = post(server, "/api/ask", {"question": "what is a folder?"})
+    assert ask["source"] == "Groq"
+    assert ask["answer"].startswith("LIVE:")
+
+    # Live answer saved to journal as ai-assisted.
+    _, listing = get(server, "/api/entries")
+    assert "ai-assisted" in listing["entries"][0]["tags"]
+
+
+def test_set_ai_key_rejects_bad_key(server, monkeypatch):
+    import web_server
+
+    def boom(*a, **k):
+        raise RuntimeError("That API key was rejected. Check it and try again.")
+
+    monkeypatch.setattr(web_server, "live_answer", boom)
+    status, body = post(server, "/api/ai/key", {"provider": "groq", "api_key": "bad"})
+    assert status == 400
+    assert "rejected" in body["error"].lower()
+    # And AI stays disabled.
+    _, st = get(server, "/api/ai/status")
+    assert st["enabled"] is False
+
+
+def test_ask_falls_back_to_offline_when_live_fails(server, monkeypatch):
+    import ai_integration, web_server
+
+    # Enable AI directly (skip validation), then make live calls fail.
+    ai_integration.save_config({"provider": "groq", "api_keys": {"groq": "k"}})
+    monkeypatch.setattr(web_server, "live_answer", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("network down")))
+
+    status, body = post(server, "/api/ask", {"question": "what is an API?"})
+    assert status == 200
+    assert body["source"] == "Starter Guide"   # offline fallback kicked in
+    assert "waiter" in body["answer"].lower()
+    assert "network down" in body["message"]
+
+
+def test_disconnect_ai(server, monkeypatch):
+    import ai_integration
+
+    ai_integration.save_config({"provider": "groq", "api_keys": {"groq": "k"}})
+    _, st = get(server, "/api/ai/status")
+    assert st["enabled"] is True
+    status, body = post(server, "/api/ai/disconnect", {})
+    assert status == 200 and body["enabled"] is False
 
 
 def test_shares_storage_with_cli(server, tmp_path):

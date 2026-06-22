@@ -144,7 +144,7 @@
     </button>
     <button class="act" onclick="openAsk()">
       <div class="ic" style="background:var(--coral-soft)">💬</div>
-      <div><p class="t">Ask the Guide</p><p class="d">Get a beginner answer</p><span class="pill">Works offline · free</span></div>
+      <div><p class="t">Ask the Guide</p><p class="d">Get a beginner answer</p><span class="pill" id="askPill">Works offline · free</span></div>
     </button>
     <button class="act" onclick="focusSearch()">
       <div class="ic" style="background:#EDEAF7">🔍</div>
@@ -187,6 +187,7 @@ async function apiPost(path, body){
 
 let entriesCache = [];      // newest-first, from /api/entries
 let lastStats = {};         // most recent /api/stats payload
+let lastAi = {enabled:false, providers:[]};  // most recent /api/ai/status
 const HC=["#ECE7DF","#BFE6DE","#7FCFC2","#36A493","#0F766E"];
 
 function esc(s){return (s+"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -273,6 +274,14 @@ async function runSearch(q){
 }
 function focusSearch(){document.getElementById("search").focus();window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});}
 
+// ---- AI status ------------------------------------------------------------
+async function loadAiStatus(){
+  try{ lastAi = await api("/api/ai/status"); }
+  catch(e){ lastAi = {enabled:false, providers:[]}; }
+  const pill=document.getElementById("askPill");
+  if(pill) pill.textContent = lastAi.enabled ? ("Full AI on · "+lastAi.label) : "Works offline · free";
+}
+
 // ---- modal plumbing -------------------------------------------------------
 function show(html){document.getElementById("modal").innerHTML=html;document.getElementById("overlay").classList.add("on");}
 function closeModal(){document.getElementById("overlay").classList.remove("on");}
@@ -336,8 +345,15 @@ async function saveNote(){
 }
 
 // ---- Ask the Guide --------------------------------------------------------
-function openAsk(){show(
-  '<h3>Ask the Guide</h3><p class="h">Beginner questions are answered offline, free. Try: what is an API?</p>'+
+function openAsk(){
+  const on=lastAi.enabled;
+  const head = on
+    ? 'Full AI is on ('+esc(lastAi.label)+'). Ask anything — your answer is saved to your journal.'
+    : 'Beginner questions are answered offline, free. Try: what is an API?';
+  const manage = ' <a href="#" class="namelink" onclick="openAISettings();return false">'
+    + (on ? '⚙︎ Manage AI' : '⚡ Turn on full AI') + '</a>';
+  show(
+  '<h3>Ask the Guide</h3><p class="h">'+head+manage+'</p>'+
   '<label>Your question</label><input id="m_q" placeholder="What is a folder?" onkeydown="if(event.key===\'Enter\')doAsk()" />'+
   '<div class="answer" id="m_ans"></div>'+
   '<div class="row"><button class="btn ghost" onclick="closeModal()">Close</button><button class="btn primary" id="m_askbtn" onclick="doAsk()">Ask</button></div>');
@@ -349,17 +365,64 @@ async function doAsk(){
   document.getElementById("m_askbtn").disabled=true;
   try{
     const data = await apiPost("/api/ask", {question:q});
-    if(data.matched){ box.innerHTML="<strong>Starter Guide:</strong> "+esc(data.answer); }
-    else { box.innerHTML="<strong>Not yet:</strong> "+esc(data.message||"I've saved your question so you can come back to it."); }
+    if(data.answer){
+      box.innerHTML="<strong>"+esc(data.source||"Answer")+":</strong> "+esc(data.answer);
+      if(data.message) box.innerHTML+='<div style="margin-top:8px;color:#8a5a3a">'+esc(data.message)+'</div>';
+    } else {
+      box.innerHTML="<strong>Not yet:</strong> "+esc(data.message||"I've saved your question so you can come back to it.");
+    }
     await refresh();
   }catch(e){ box.innerHTML="Sorry — something went wrong: "+esc(e.message); }
   document.getElementById("m_askbtn").disabled=false;
 }
 
+// ---- Turn on full AI ------------------------------------------------------
+function openAISettings(){
+  const provs = lastAi.providers || [];
+  const opts = provs.map(p=>'<option value="'+esc(p.id)+'"'+(lastAi.provider===p.id?' selected':'')+'>'+esc(p.label)+'</option>').join("");
+  const status = lastAi.enabled
+    ? '<p class="h">Connected: <strong>'+esc(lastAi.label)+'</strong> (key '+esc(lastAi.masked)+')</p>'
+    : '<p class="h">Pick a provider, paste a free key, and Save. Beginner questions still work offline either way.</p>';
+  show(
+  '<h3>Turn on full AI</h3>'+status+
+  '<label>Provider</label><select id="ai_prov" onchange="aiProvHelp()">'+opts+'</select>'+
+  '<div id="ai_help" style="font-size:12.5px;font-weight:700;color:var(--muted);margin-top:6px"></div>'+
+  '<label>API key</label><input id="ai_key" type="password" placeholder="paste your key here" onkeydown="if(event.key===\'Enter\')saveAIKey()" />'+
+  '<p class="h" style="margin-top:10px">Your key is saved only on this computer and is sent straight to the provider — never uploaded by this app.</p>'+
+  '<div class="row">'+
+    (lastAi.enabled?'<button class="btn ghost" onclick="disconnectAI()">Disconnect</button>':'')+
+    '<button class="btn ghost" onclick="closeModal()">Cancel</button>'+
+    '<button class="btn primary" id="ai_save" onclick="saveAIKey()">Save &amp; test</button>'+
+  '</div>');
+  setTimeout(aiProvHelp,10);
+}
+function aiProvHelp(){
+  const sel=document.getElementById("ai_prov"); if(!sel)return;
+  const p=(lastAi.providers||[]).find(x=>x.id===sel.value);
+  const el=document.getElementById("ai_help");
+  if(p&&el) el.innerHTML='Get a free key here: <a class="namelink" href="'+p.get_key_url+'" target="_blank" rel="noopener">'+esc(p.get_key_url)+'</a>';
+}
+async function saveAIKey(){
+  const provider=document.getElementById("ai_prov").value;
+  const key=document.getElementById("ai_key").value.trim();
+  if(!key){toast("Paste your API key 🙂");return;}
+  const btn=document.getElementById("ai_save"); btn.disabled=true; btn.textContent="Testing…";
+  try{
+    await apiPost("/api/ai/key", {provider:provider, api_key:key});
+    await loadAiStatus(); closeModal(); toast("Full AI is on 🎉 Ask anything!");
+  }catch(e){ toast("Couldn't turn on AI: "+e.message); btn.disabled=false; btn.textContent="Save & test"; }
+}
+async function disconnectAI(){
+  try{
+    await apiPost("/api/ai/disconnect", {});
+    await loadAiStatus(); closeModal(); toast("Full AI turned off. The offline Guide still works.");
+  }catch(e){ toast("Could not disconnect: "+e.message); }
+}
+
 // ---- toast + boot ---------------------------------------------------------
 let toastT;function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),2200);}
 
-async function refresh(){ await Promise.all([loadStats(), loadEntries()]); }
+async function refresh(){ await Promise.all([loadStats(), loadEntries(), loadAiStatus()]); }
 refresh();
 </script>
 </body>
