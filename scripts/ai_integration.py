@@ -535,15 +535,18 @@ def main():
     ai.ask_ai(args.question, args.source)
 
 
-def _handle_no_key(question: str) -> None:
-    """Answer offline when possible; otherwise guide the user kindly."""
+def answer_offline(question: str):
+    """Answer a question offline and save it to the journal. No console I/O.
+
+    Pure logic shared by the CLI's no-key path and the web UI's Ask endpoint.
+    Returns (answer, matched, entry_path):
+      - answer: the Starter Guide answer string, or None if no canned match.
+      - matched: True when a Starter Guide answer was found.
+      - entry_path: path to the journal entry that was created.
+    """
     answer = starter_brain_answer(question)
 
     if answer:
-        print("\nFull AI is not switched on yet, but here is a Starter Guide answer:")
-        print("-" * 60)
-        print(answer)
-        print("-" * 60)
         content = "\n".join(
             [
                 "**Source:** Starter Guide (offline)",
@@ -556,32 +559,44 @@ def _handle_no_key(question: str) -> None:
                 " section 'Turn on AI answers'. -->",
             ]
         )
-        create_entry(question, content, ["question", "starter-guide"])
+        entry_path = create_entry(question, content, ["question", "starter-guide"])
+        return answer, True, entry_path
+
+    # No canned answer: do not dead-end. Save the question so the learner can
+    # return to it once full AI is switched on.
+    content = "\n".join(
+        [
+            "## Answer",
+            "",
+            "<!-- Answer pending: turn on full AI to answer this question."
+            " See the README section 'Turn on AI answers'. -->",
+        ]
+    )
+    entry_path = create_entry(question, content, ["question", "unanswered"])
+    return None, False, entry_path
+
+
+def _handle_no_key(question: str) -> None:
+    """Answer offline when possible; otherwise guide the user kindly."""
+    answer, matched, _ = answer_offline(question)
+
+    if matched:
+        print("\nFull AI is not switched on yet, but here is a Starter Guide answer:")
+        print("-" * 60)
+        print(answer)
+        print("-" * 60)
         print(
             "\nSaved to your journal. Want answers to ANY question? Turn on full AI"
             " (free options exist) - see the README section 'Turn on AI answers'."
         )
         return
 
-    # No canned answer: do not dead-end. Save the question and explain the
-    # one-time setup in plain language.
+    # No canned answer: explain the one-time setup in plain language.
     print("\nFull AI answers are not switched on yet, so I cannot answer that one.")
     print("Good news: turning it on is a one-time setup, and there are free options.")
     print("  - Easiest free options: a Google Gemini or Groq free API key.")
     print("  - Or an OpenAI key if you have one.")
     print("  - Full steps are in the README section 'Turn on AI answers'.")
-    create_entry(
-        question,
-        "\n".join(
-            [
-                "## Answer",
-                "",
-                "<!-- Answer pending: turn on full AI to answer this question."
-                " See the README section 'Turn on AI answers'. -->",
-            ]
-        ),
-        ["question", "unanswered"],
-    )
     print("\nI saved your question so you can come back to it once AI is on.")
 
 

@@ -168,10 +168,16 @@ def cmd_list(args: argparse.Namespace) -> None:
         print(format_entry(entry))
 
 
-def cmd_search(args: argparse.Namespace) -> None:
-    """Search journal entries by title, tag, AND the text inside each entry."""
+def search_entries(query: str) -> list[tuple[dict, Optional[str]]]:
+    """Search entries by title, tag, AND full text. Pure: returns matches.
+
+    Returns a list of (entry, snippet) tuples sorted newest-first. ``snippet``
+    is the first non-heading line containing the query, or ``None`` when the
+    match came only from the topic/tags. Shared by the CLI and the web layer
+    so search behaves identically in both.
+    """
     index = load_index()
-    query = (args.query or prompt_required("Search keyword")).lower()
+    query = (query or "").lower()
     journal_dir = get_journal_dir()
 
     matches = []
@@ -200,13 +206,19 @@ def cmd_search(args: argparse.Namespace) -> None:
         if in_meta or snippet is not None:
             matches.append((entry, snippet))
 
+    return sorted(matches, key=lambda m: m[0]["created"], reverse=True)
+
+
+def cmd_search(args: argparse.Namespace) -> None:
+    """Search journal entries by title, tag, AND the text inside each entry."""
+    query = args.query or prompt_required("Search keyword")
+    matches = search_entries(query)
+
     if not matches:
         print("No matches found.")
         return
 
-    for entry, snippet in sorted(
-        matches, key=lambda m: m[0]["created"], reverse=True
-    ):
+    for entry, snippet in matches:
         print(format_entry(entry))
         if snippet:
             print(f"      > {snippet}")
@@ -302,6 +314,14 @@ def cmd_setup(args: argparse.Namespace) -> None:
         print("OpenAI API key: not configured")
 
 
+def cmd_web(args: argparse.Namespace) -> None:
+    """Launch the friendly local web UI in the browser."""
+    import web_server
+
+    port = getattr(args, "port", None) or web_server.DEFAULT_PORT
+    web_server.run(port=port, open_browser=not getattr(args, "no_browser", False))
+
+
 def cmd_menu(args: argparse.Namespace) -> None:
     """Show a simple menu for users who do not want to memorize commands."""
     while True:
@@ -370,6 +390,11 @@ def build_parser() -> argparse.ArgumentParser:
     ask_parser.add_argument("question", nargs="?")
     ask_parser.add_argument("options", nargs=argparse.REMAINDER)
     ask_parser.set_defaults(func=cmd_ask)
+
+    web_parser = subparsers.add_parser("web", help="Open the friendly web UI in a browser")
+    web_parser.add_argument("--port", type=int, default=None)
+    web_parser.add_argument("--no-browser", action="store_true")
+    web_parser.set_defaults(func=cmd_web)
 
     menu_parser = subparsers.add_parser("menu", help="Open the beginner menu")
     menu_parser.set_defaults(func=cmd_menu)

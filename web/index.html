@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Coding Journal</title>
+<style>
+  :root{
+    --bg:#FBF8F4; --card:#FFFFFF; --ink:#22201D; --muted:#6F6A62;
+    --teal:#0F766E; --teal-soft:#E0F2F1; --teal-line:#BFE3DF;
+    --coral:#E07A5F; --coral-soft:#FBEAE3; --flame:#F59E0B;
+    --line:#ECE6DD; --shadow:0 1px 2px rgba(34,32,29,.06),0 8px 24px rgba(34,32,29,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Nunito","Segoe UI Rounded",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:980px;margin:0 auto;padding:22px 20px 60px;}
+  .ribbon{background:var(--teal-soft);color:#0c5c50;border:1px solid var(--teal-line);
+    border-radius:12px;padding:8px 14px;font-size:13px;font-weight:700;text-align:center;margin-bottom:18px;}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand h1{font-size:20px;margin:0;font-weight:800;letter-spacing:-.2px;}
+  .brand p{margin:0;font-size:12.5px;color:var(--muted);font-weight:700;}
+  .right{display:flex;align-items:center;gap:10px;}
+  .streak{display:flex;align-items:center;gap:6px;background:#FFF4E0;color:#9a6700;
+    border:1px solid #F4D58A;border-radius:999px;padding:6px 12px;font-weight:800;font-size:13px;}
+  .avatar{width:38px;height:38px;border-radius:50%;background:var(--teal);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:800;}
+  .hello{font-size:22px;font-weight:800;margin:14px 2px 2px;letter-spacing:-.3px;}
+  .hello .em{color:var(--coral);}
+  .sub{color:var(--muted);font-weight:700;margin:0 2px 18px;font-size:14px;}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);}
+  .tile .k{font-size:12.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.4px;}
+  .tile .v{font-size:26px;font-weight:800;margin-top:4px;}
+  .tile .v small{font-size:14px;color:var(--muted);font-weight:800;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow);margin-bottom:18px;}
+  .card h2{font-size:15px;margin:0 0 12px;font-weight:800;}
+  .heat{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;}
+  .hcol{display:flex;flex-direction:column;gap:4px;}
+  .hcell{width:15px;height:15px;border-radius:4px;background:#ECE7DF;}
+  .legend{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;font-weight:700;margin-top:10px;justify-content:flex-end;}
+  .legend i{width:13px;height:13px;border-radius:3px;display:inline-block;}
+  .actions{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px;}
+  .act{display:flex;gap:14px;align-items:flex-start;text-align:left;background:var(--card);
+    border:1px solid var(--line);border-radius:18px;padding:18px;cursor:pointer;box-shadow:var(--shadow);
+    transition:transform .08s ease,border-color .12s ease;font-family:inherit;}
+  .act:hover{transform:translateY(-2px);border-color:var(--teal-line);}
+  .act .ic{width:44px;height:44px;border-radius:13px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .act .t{font-size:16px;font-weight:800;margin:0;}
+  .act .d{font-size:13px;color:var(--muted);font-weight:700;margin:3px 0 0;}
+  .pill{display:inline-block;background:var(--teal-soft);color:var(--teal);font-size:11px;font-weight:800;
+    border-radius:999px;padding:2px 9px;margin-top:7px;}
+  .searchbar{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);
+    border-radius:12px;padding:8px 12px;margin-bottom:12px;}
+  .searchbar input{border:0;background:transparent;outline:none;font:inherit;font-weight:700;width:100%;color:var(--ink);}
+  .entry{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;background:#fff;}
+  .entry .et{font-weight:800;font-size:15px;}
+  .entry .em{color:var(--muted);font-size:13px;font-weight:700;margin:3px 0 6px;}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;}
+  .tag{background:#F2EEE7;color:#6a655c;font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;}
+  .empty{color:var(--muted);font-weight:700;font-size:14px;padding:8px 2px;}
+  .badges{display:flex;gap:10px;flex-wrap:wrap;}
+  .badge{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);
+    border-radius:999px;padding:7px 13px;font-weight:800;font-size:13px;box-shadow:var(--shadow);}
+  .badge .bi{font-size:17px;}
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(34,32,29,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:50;}
+  .overlay.on{display:flex;}
+  .modal{background:#fff;border-radius:20px;max-width:460px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  .modal h3{margin:0 0 4px;font-size:19px;font-weight:800;}
+  .modal p.h{margin:0 0 16px;color:var(--muted);font-weight:700;font-size:13.5px;}
+  .modal label{display:block;font-weight:800;font-size:13px;margin:12px 0 5px;}
+  .modal input,.modal textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font:inherit;font-weight:700;outline:none;}
+  .modal input:focus,.modal textarea:focus{border-color:var(--teal);}
+  .modal textarea{min-height:84px;resize:vertical;}
+  .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+  .btn{border:0;border-radius:12px;padding:11px 18px;font:inherit;font-weight:800;cursor:pointer;}
+  .btn.primary{background:var(--teal);color:#fff;}
+  .btn.ghost{background:#F2EEE7;color:var(--ink);}
+  .answer{background:var(--teal-soft);border:1px solid var(--teal-line);border-radius:14px;padding:14px;margin-top:14px;font-weight:700;line-height:1.5;color:#0c5c50;display:none;}
+  .answer.on{display:block;}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;font-weight:800;font-size:14px;
+    opacity:0;transition:all .25s ease;z-index:60;pointer-events:none;}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+  .foot{text-align:center;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:8px;}
+  @media(max-width:680px){.tiles{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ribbon">Your notes stay as plain files on your own computer — nothing is uploaded.</div>
+
+  <div class="top">
+    <div class="brand">
+      <svg width="52" height="52" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <g fill="#E07A5F">
+          <rect x="3" y="4" width="10" height="7"/><rect x="2" y="5" width="1" height="5"/><rect x="13" y="5" width="1" height="5"/>
+          <rect x="4" y="11" width="2" height="2"/><rect x="10" y="11" width="2" height="2"/>
+        </g>
+        <g fill="#22201D"><rect x="5" y="6" width="2" height="2"/><rect x="9" y="6" width="2" height="2"/></g>
+      </svg>
+      <div>
+        <h1>AI Coding Journal</h1>
+        <p>Turn what you learn into proof</p>
+      </div>
+    </div>
+    <div class="right">
+      <div class="streak"><span>🔥</span><span id="streakPill">0-day streak</span></div>
+      <div class="avatar" id="avatar">A</div>
+    </div>
+  </div>
+
+  <div class="hello" id="hello">Hey there!</div>
+  <p class="sub" id="subline">Write one line today to start your streak.</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="k">Streak</div><div class="v"><span id="tStreak">0</span><small> days</small></div></div>
+    <div class="tile"><div class="k">Entries</div><div class="v" id="tEntries">0</div></div>
+    <div class="tile"><div class="k">Days active</div><div class="v" id="tDays">0</div></div>
+    <div class="tile"><div class="k">Badges</div><div class="v" id="tBadges">0</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Your last 13 weeks</h2>
+    <div class="heat" id="heat"></div>
+    <div class="legend">Less
+      <i style="background:#ECE7DF"></i><i style="background:#BFE6DE"></i><i style="background:#7FCFC2"></i><i style="background:#36A493"></i><i style="background:#0F766E"></i>
+      More</div>
+  </div>
+
+  <div class="actions">
+    <button class="act" onclick="openNew()">
+      <div class="ic" style="background:var(--teal-soft)">✏️</div>
+      <div><p class="t">New entry</p><p class="d">Start a fresh learning note</p></div>
+    </button>
+    <button class="act" onclick="openNote()">
+      <div class="ic" style="background:#FFF4E0">➕</div>
+      <div><p class="t">Add to today</p><p class="d">Append a quick thought</p></div>
+    </button>
+    <button class="act" onclick="openAsk()">
+      <div class="ic" style="background:var(--coral-soft)">💬</div>
+      <div><p class="t">Ask the Guide</p><p class="d">Get a beginner answer</p><span class="pill">Works offline · free</span></div>
+    </button>
+    <button class="act" onclick="focusSearch()">
+      <div class="ic" style="background:#EDEAF7">🔍</div>
+      <div><p class="t">Search my journal</p><p class="d">Find anything you wrote</p></div>
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>Recent entries</h2>
+    <div class="searchbar"><span>🔍</span><input id="search" placeholder="Search your entries…" oninput="onSearchInput()" /></div>
+    <div id="entries"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Badges earned</h2>
+    <div class="badges" id="badges"></div>
+  </div>
+
+  <p class="foot">The friendlier web version of AI Journal. The real app keeps your notes as plain files on your own computer.</p>
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Small fetch helpers. Everything talks to the local JSON API in web_server.py
+// ---------------------------------------------------------------------------
+async function api(path){
+  const r = await fetch(path, {headers:{"Accept":"application/json"}});
+  if(!r.ok) throw new Error((await r.json().catch(()=>({}))).error || r.statusText);
+  return r.json();
+}
+async function apiPost(path, body){
+  const r = await fetch(path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body||{})});
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+
+let entriesCache = [];      // newest-first, from /api/entries
+const HC=["#ECE7DF","#BFE6DE","#7FCFC2","#36A493","#0F766E"];
+
+function esc(s){return (s+"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+// ---- stats / heatmap / badges --------------------------------------------
+async function loadStats(){
+  try{
+    const s = await api("/api/stats");
+    document.getElementById("tStreak").textContent = s.streak;
+    document.getElementById("streakPill").textContent = s.streak + "-day streak";
+    document.getElementById("tEntries").textContent = s.total_entries;
+    document.getElementById("tDays").textContent = s.days_active;
+    document.getElementById("tBadges").textContent = s.badge_count;
+    document.getElementById("avatar").textContent = s.avatar || "A";
+    document.getElementById("hello").innerHTML = "Hey " + esc(s.name) + "! " +
+      (s.total_entries ? '<span class="em">Nice work.</span>' : '<span class="em">Let’s begin.</span>');
+    document.getElementById("subline").textContent = s.streak
+      ? "You're on a " + s.streak + "-day streak — write one line today to keep it alive."
+      : "Write one line today to start your streak.";
+    renderHeat(s.heat || []);
+    renderBadges(s.badges || []);
+  }catch(e){ /* stats are non-critical; leave defaults */ }
+}
+function renderHeat(heat){
+  const el=document.getElementById("heat");el.innerHTML="";
+  for(let c=0;c<13;c++){
+    const col=document.createElement("div");col.className="hcol";
+    for(let r=0;r<7;r++){
+      const i=c*7+r;const cell=document.createElement("div");cell.className="hcell";
+      cell.style.background=HC[heat[i]||0];col.appendChild(cell);
+    }
+    el.appendChild(col);
+  }
+}
+function renderBadges(badges){
+  const el=document.getElementById("badges");
+  if(!badges.length){el.innerHTML='<div class="empty">Write your first entry to earn a badge 🌱</div>';return;}
+  el.innerHTML=badges.map(b=>'<div class="badge"><span class="bi">'+esc(b.icon)+'</span>'+esc(b.label)+'</div>').join("");
+}
+
+// ---- entries + search -----------------------------------------------------
+function entryHtml(e){
+  let snip = e.snippet || e.preview || "";
+  if(snip.length>120) snip = snip.slice(0,117)+"…";
+  const body = snip ? '<div style="font-weight:700;color:#4a4640;font-size:14px;margin-bottom:8px">'+esc(snip)+'</div>' : '';
+  const tags = (e.tags||[]).map(t=>'<span class="tag">'+esc(t)+'</span>').join("");
+  return '<div class="entry"><div class="et">'+esc(e.topic)+'</div><div class="em">'+esc(e.when||"")+'</div>'+body+'<div class="tags">'+tags+'</div></div>';
+}
+function renderEntries(list, query){
+  const box=document.getElementById("entries");
+  if(!list.length){
+    box.innerHTML = query
+      ? '<div class="empty">No entries match “'+esc(query)+'”. Try another word.</div>'
+      : '<div class="empty">No entries yet. Tap “New entry” to write your first one ✏️</div>';
+    return;
+  }
+  box.innerHTML = list.map(entryHtml).join("");
+}
+async function loadEntries(){
+  try{
+    const data = await api("/api/entries");
+    entriesCache = data.entries || [];
+    renderEntries(entriesCache, "");
+  }catch(e){
+    document.getElementById("entries").innerHTML='<div class="empty">Could not load entries.</div>';
+  }
+}
+let searchT;
+function onSearchInput(){
+  clearTimeout(searchT);
+  const q=(document.getElementById("search").value||"").trim();
+  searchT=setTimeout(()=>runSearch(q), 180);
+}
+async function runSearch(q){
+  if(!q){ renderEntries(entriesCache, ""); return; }
+  try{
+    const data = await api("/api/search?q="+encodeURIComponent(q));
+    renderEntries(data.entries||[], q);
+  }catch(e){ /* ignore transient search errors */ }
+}
+function focusSearch(){document.getElementById("search").focus();window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});}
+
+// ---- modal plumbing -------------------------------------------------------
+function show(html){document.getElementById("modal").innerHTML=html;document.getElementById("overlay").classList.add("on");}
+function closeModal(){document.getElementById("overlay").classList.remove("on");}
+document.getElementById("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeModal();});
+
+// ---- New entry ------------------------------------------------------------
+function openNew(){show(
+  '<h3>New entry</h3><p class="h">What did you work on? One honest line beats a perfect essay.</p>'+
+  '<label>Topic</label><input id="m_topic" placeholder="e.g. My first webpage" />'+
+  '<label>Tags <span style="color:#9a948b;font-weight:700">(optional, e.g. html, beginner)</span></label><input id="m_tags" placeholder="html, beginner" />'+
+  '<label>What I learned / tried / will do next</label><textarea id="m_body" placeholder="I tried… this happened… next I will…"></textarea>'+
+  '<div class="row"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary" id="m_save" onclick="saveNew()">Save entry</button></div>');
+  setTimeout(()=>document.getElementById("m_topic").focus(),50);}
+async function saveNew(){
+  const t=document.getElementById("m_topic").value.trim();
+  if(!t){toast("Add a topic first 🙂");return;}
+  const tags=document.getElementById("m_tags").value;
+  const body=document.getElementById("m_body").value.trim();
+  document.getElementById("m_save").disabled=true;
+  try{
+    await apiPost("/api/entries", {topic:t, tags:tags, body:body});
+    closeModal(); await refresh(); toast("Entry saved 🎉 Streak safe for today!");
+  }catch(e){ toast("Could not save: "+e.message); document.getElementById("m_save").disabled=false; }
+}
+
+// ---- Add to latest --------------------------------------------------------
+function openNote(){
+  const latest = entriesCache[0];
+  if(!latest){ toast("Write a new entry first ✏️"); return; }
+  show(
+  '<h3>Add to today</h3><p class="h">Appending to: “'+esc(latest.topic)+'”</p>'+
+  '<label>Your note</label><textarea id="m_note" placeholder="One more thing I noticed…"></textarea>'+
+  '<div class="row"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary" id="m_addbtn" onclick="saveNote()">Add note</button></div>');
+  setTimeout(()=>document.getElementById("m_note").focus(),50);}
+async function saveNote(){
+  const n=document.getElementById("m_note").value.trim();
+  if(!n){toast("Type a note first 🙂");return;}
+  document.getElementById("m_addbtn").disabled=true;
+  try{
+    await apiPost("/api/append", {target:"latest", content:n});
+    closeModal(); await refresh(); toast("Added to your latest entry ✨");
+  }catch(e){ toast("Could not add note: "+e.message); document.getElementById("m_addbtn").disabled=false; }
+}
+
+// ---- Ask the Guide --------------------------------------------------------
+function openAsk(){show(
+  '<h3>Ask the Guide</h3><p class="h">Beginner questions are answered offline, free. Try: what is an API?</p>'+
+  '<label>Your question</label><input id="m_q" placeholder="What is a folder?" onkeydown="if(event.key===\'Enter\')doAsk()" />'+
+  '<div class="answer" id="m_ans"></div>'+
+  '<div class="row"><button class="btn ghost" onclick="closeModal()">Close</button><button class="btn primary" id="m_askbtn" onclick="doAsk()">Ask</button></div>');
+  setTimeout(()=>document.getElementById("m_q").focus(),50);}
+async function doAsk(){
+  const q=document.getElementById("m_q").value.trim();
+  if(!q){toast("Type a question 🙂");return;}
+  const box=document.getElementById("m_ans");box.classList.add("on");box.innerHTML="Thinking…";
+  document.getElementById("m_askbtn").disabled=true;
+  try{
+    const data = await apiPost("/api/ask", {question:q});
+    if(data.matched){ box.innerHTML="<strong>Starter Guide:</strong> "+esc(data.answer); }
+    else { box.innerHTML="<strong>Not yet:</strong> "+esc(data.message||"I've saved your question so you can come back to it."); }
+    await refresh();
+  }catch(e){ box.innerHTML="Sorry — something went wrong: "+esc(e.message); }
+  document.getElementById("m_askbtn").disabled=false;
+}
+
+// ---- toast + boot ---------------------------------------------------------
+let toastT;function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),2200);}
+
+async function refresh(){ await Promise.all([loadStats(), loadEntries()]); }
+refresh();
+</script>
+</body>
+</html>
