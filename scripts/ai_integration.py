@@ -155,6 +155,14 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
         "env": "OPENAI_API_KEY",
         "get_key_url": "https://platform.openai.com/api-keys",
     },
+    "anthropic": {
+        "label": "Claude",
+        "url": "https://api.anthropic.com/v1/messages",
+        "model": "claude-haiku-4-5-20251001",
+        "style": "anthropic",
+        "env": "ANTHROPIC_API_KEY",
+        "get_key_url": "https://console.anthropic.com/settings/keys",
+    },
 }
 
 
@@ -250,6 +258,24 @@ def live_answer(
         data = _http_post_json(meta["url"], body, headers, timeout)
         try:
             return data["choices"][0]["message"]["content"].strip()
+        except (KeyError, IndexError, AttributeError):
+            raise RuntimeError("The AI provider sent an unexpected response.")
+
+    if meta["style"] == "anthropic":
+        body = {
+            "model": model,
+            "max_tokens": 800,
+            "system": SYSTEM_PROMPT,
+            "messages": [{"role": "user", "content": question}],
+        }
+        headers = {
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+        data = _http_post_json(meta["url"], body, headers, timeout)
+        try:
+            return data["content"][0]["text"].strip()
         except (KeyError, IndexError, AttributeError):
             raise RuntimeError("The AI provider sent an unexpected response.")
 

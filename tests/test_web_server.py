@@ -206,7 +206,24 @@ def test_ai_status_default_disabled(server):
     assert status == 200
     assert body["enabled"] is False
     ids = {p["id"] for p in body["providers"]}
-    assert {"groq", "gemini", "openai"} <= ids
+    assert {"groq", "gemini", "openai", "anthropic"} <= ids
+
+
+def test_live_answer_parsers(monkeypatch):
+    """Each provider style parses its own response shape correctly."""
+    import ai_integration as ai
+
+    monkeypatch.setattr(ai, "_http_post_json",
+                        lambda *a, **k: {"choices": [{"message": {"content": "  oa  "}}]})
+    assert ai.live_answer("q", "groq", "k") == "oa"      # openai-compatible
+
+    monkeypatch.setattr(ai, "_http_post_json",
+                        lambda *a, **k: {"candidates": [{"content": {"parts": [{"text": "gm"}]}}]})
+    assert ai.live_answer("q", "gemini", "k") == "gm"
+
+    monkeypatch.setattr(ai, "_http_post_json",
+                        lambda *a, **k: {"content": [{"type": "text", "text": "claude!"}]})
+    assert ai.live_answer("q", "anthropic", "k") == "claude!"
 
 
 def test_set_ai_key_then_ask_live(server, monkeypatch):
