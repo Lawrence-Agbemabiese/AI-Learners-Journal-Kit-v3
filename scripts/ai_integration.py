@@ -142,7 +142,7 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
     "gemini": {
         "label": "Gemini",
         "url": "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-        "model": "gemini-1.5-flash",
+        "model": "gemini-2.0-flash",
         "style": "gemini",
         "env": "GEMINI_API_KEY",
         "get_key_url": "https://aistudio.google.com/app/apikey",
