@@ -379,10 +379,11 @@ async function doAsk(){
 // ---- Turn on full AI ------------------------------------------------------
 function openAISettings(){
   const provs = lastAi.providers || [];
-  const opts = provs.map(p=>'<option value="'+esc(p.id)+'"'+(lastAi.provider===p.id?' selected':'')+'>'+esc(p.label)+'</option>').join("");
+  const defaultProv = lastAi.provider || 'groq';
+  const opts = provs.map(p=>'<option value="'+esc(p.id)+'"'+(defaultProv===p.id?' selected':'')+'>'+esc(p.label)+'</option>').join("");
   const status = lastAi.enabled
     ? '<p class="h">Connected: <strong>'+esc(lastAi.label)+'</strong> (key '+esc(lastAi.masked)+')</p>'
-    : '<p class="h">Pick a provider, paste a free key, and Save. Beginner questions still work offline either way.</p>';
+    : '<p class="h">Pick a provider, paste your key, and Save. Groq is free with no card needed. Beginner questions work offline either way.</p>';
   show(
   '<h3>Turn on full AI</h3>'+status+
   '<label>Provider</label><select id="ai_prov" onchange="aiProvHelp()">'+opts+'</select>'+
@@ -400,7 +401,11 @@ function aiProvHelp(){
   const sel=document.getElementById("ai_prov"); if(!sel)return;
   const p=(lastAi.providers||[]).find(x=>x.id===sel.value);
   const el=document.getElementById("ai_help");
-  if(p&&el) el.innerHTML='Get a free key here: <a class="namelink" href="'+p.get_key_url+'" target="_blank" rel="noopener">'+esc(p.get_key_url)+'</a>';
+  if(p&&el){
+    let html='Get a key here: <a class="namelink" href="'+p.get_key_url+'" target="_blank" rel="noopener">'+esc(p.get_key_url)+'</a>';
+    if(p.note) html+='<br><span style="color:var(--muted)">'+esc(p.note)+'</span>';
+    el.innerHTML=html;
+  }
 }
 async function saveAIKey(){
   const provider=document.getElementById("ai_prov").value;

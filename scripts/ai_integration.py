@@ -138,6 +138,7 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
         "style": "openai",
         "env": "GROQ_API_KEY",
         "get_key_url": "https://console.groq.com/keys",
+        "note": "Free - no card needed. Recommended for learners.",
     },
     "gemini": {
         "label": "Gemini",
@@ -146,6 +147,7 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
         "style": "gemini",
         "env": "GEMINI_API_KEY",
         "get_key_url": "https://aistudio.google.com/app/apikey",
+        "note": "Free tier now needs a billing card linked to your Google account.",
     },
     "openai": {
         "label": "ChatGPT",
@@ -154,6 +156,7 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
         "style": "openai",
         "env": "OPENAI_API_KEY",
         "get_key_url": "https://platform.openai.com/api-keys",
+        "note": "Paid - needs OpenAI API credits.",
     },
     "anthropic": {
         "label": "Claude",
@@ -162,6 +165,7 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
         "style": "anthropic",
         "env": "ANTHROPIC_API_KEY",
         "get_key_url": "https://console.anthropic.com/settings/keys",
+        "note": "Paid - needs Anthropic API credits.",
     },
 }
 

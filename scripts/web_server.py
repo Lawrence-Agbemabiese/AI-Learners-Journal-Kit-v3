@@ -295,7 +295,12 @@ def _set_profile(payload: dict) -> dict:
 
 def _provider_catalog() -> list[dict]:
     return [
-        {"id": pid, "label": m["label"], "get_key_url": m["get_key_url"]}
+        {
+            "id": pid,
+            "label": m["label"],
+            "get_key_url": m["get_key_url"],
+            "note": m.get("note", ""),
+        }
         for pid, m in PROVIDERS.items()
     ]
 

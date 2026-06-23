@@ -136,11 +136,13 @@ xattr -dr com.apple.quarantine ai-coding-journal-starter
 
 The journal works fully without AI, and beginner questions like "what is an
 API?" are answered offline by the built-in **Starter Guide** - no key needed.
-To get AI answers to *any* question, switch on full AI once. There are free
-options:
+To get AI answers to *any* question, switch on full AI once by pasting a
+provider key. Recommended order for learners:
 
-- **Free:** create a free **Google Gemini** or **Groq** API key.
-- **Or:** use an **OpenAI** key if you have one (paid per usage).
+- **Groq** - free, no card needed. The best option if you don't have a card.
+- **Claude** or **ChatGPT** - paid; need credits on your provider account.
+- **Gemini** - has a free tier, but Google now requires linking a billing card
+  to your Google account before it will work (otherwise you get a quota error).
 
 Then install the optional package and set your key:
 
