@@ -134,7 +134,7 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
     "groq": {
         "label": "Groq",
         "url": "https://api.groq.com/openai/v1/chat/completions",
-        "model": "llama-3.1-8b-instant",
+        "model": "openai/gpt-oss-20b",
         "style": "openai",
         "env": "GROQ_API_KEY",
         "get_key_url": "https://console.groq.com/keys",
@@ -158,7 +158,7 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
     "anthropic": {
         "label": "Claude",
         "url": "https://api.anthropic.com/v1/messages",
-        "model": "claude-opus-4-8",
+        "model": "claude-haiku-4-5-20251001",
         "style": "anthropic",
         "env": "ANTHROPIC_API_KEY",
         "get_key_url": "https://console.anthropic.com/settings/keys",
