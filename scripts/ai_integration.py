@@ -158,7 +158,7 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
     "anthropic": {
         "label": "Claude",
         "url": "https://api.anthropic.com/v1/messages",
-        "model": "claude-haiku-4-5-20251001",
+        "model": "claude-opus-4-8",
         "style": "anthropic",
         "env": "ANTHROPIC_API_KEY",
         "get_key_url": "https://console.anthropic.com/settings/keys",
