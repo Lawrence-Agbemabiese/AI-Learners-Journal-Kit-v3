@@ -257,11 +257,31 @@ def _http_post_json(url: str, body: dict, headers: dict, timeout: int) -> dict:
         raise RuntimeError("The AI provider sent an unreadable response.")
 
 
+def _build_user_content(question: str, context: str = "") -> str:
+    """Combine the learner's question with optional context from their journal.
+
+    When context is supplied (excerpts from the learner's own past entries), we
+    ask the model to build on what they already know rather than repeat it.
+    """
+    if not context:
+        return question
+    return (
+        "Here are notes from the learner's own journal that may be relevant. "
+        "Build on what they already know, and don't re-explain what they've "
+        "already mastered. If the notes aren't relevant, simply ignore them.\n\n"
+        "JOURNAL NOTES:\n" + context + "\n\n"
+        "Now answer their question in plain language:\n" + question
+    )
+
+
 def live_answer(
     question: str, provider: str, api_key: str, model: Optional[str] = None,
-    timeout: int = 30,
+    timeout: int = 30, context: str = "",
 ) -> str:
     """Ask a live AI provider over HTTPS and return the answer text.
+
+    Optionally pass `context` (excerpts from the learner's own journal) so the
+    answer builds on what they've already learned.
 
     Raises RuntimeError with a beginner-friendly message on any failure.
     """
@@ -269,13 +289,14 @@ def live_answer(
         raise RuntimeError(f"Unknown AI provider: {provider}")
     meta = PROVIDERS[provider]
     model = model or meta["model"]
+    user_content = _build_user_content(question, context)
 
     if meta["style"] == "openai":
         body = {
             "model": model,
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": question},
+                {"role": "user", "content": user_content},
             ],
             "max_tokens": 800,
             "temperature": 0.7,
@@ -295,7 +316,7 @@ def live_answer(
             "model": model,
             "max_tokens": 800,
             "system": SYSTEM_PROMPT,
-            "messages": [{"role": "user", "content": question}],
+            "messages": [{"role": "user", "content": user_content}],
         }
         headers = {
             "x-api-key": api_key,
@@ -311,7 +332,7 @@ def live_answer(
     # gemini style
     url = meta["url"].format(model=model) + f"?key={api_key}"
     body = {
-        "contents": [{"parts": [{"text": question}]}],
+        "contents": [{"parts": [{"text": user_content}]}],
         "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
     }
     data = _http_post_json(url, body, {"Content-Type": "application/json"}, timeout)

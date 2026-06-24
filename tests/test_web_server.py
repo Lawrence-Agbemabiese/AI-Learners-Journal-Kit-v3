@@ -305,6 +305,67 @@ def test_disconnect_ai(server, monkeypatch):
     assert status == 200 and body["enabled"] is False
 
 
+def test_live_answer_includes_journal_context(monkeypatch):
+    """When context is supplied, live_answer sends it in the user message."""
+    import ai_integration as ai
+
+    captured = {}
+
+    def fake_post(url, body, headers, timeout):
+        captured["body"] = body
+        return {"choices": [{"message": {"content": "ok"}}]}
+
+    monkeypatch.setattr(ai, "_http_post_json", fake_post)
+    ai.live_answer("How do while loops work?", "groq", "k",
+                   context="- For loops: a for loop repeats a fixed number of times.")
+    sent = captured["body"]["messages"][-1]["content"]
+    assert "JOURNAL NOTES" in sent
+    assert "for loop repeats" in sent
+    assert "How do while loops work?" in sent
+
+    # No context -> the user message is just the question.
+    ai.live_answer("plain question", "groq", "k")
+    assert captured["body"]["messages"][-1]["content"] == "plain question"
+
+
+def test_ask_passes_journal_context_to_live_answer(server, monkeypatch):
+    import ai_integration, web_server
+
+    ai_integration.save_config({"provider": "groq", "api_keys": {"groq": "k"}})
+    post(server, "/api/entries", {"topic": "For loops", "body": "A for loop repeats a fixed number of times."})
+
+    captured = {}
+    monkeypatch.setattr(web_server, "live_answer",
+                        lambda *a, **k: captured.update(context=k.get("context", "")) or "LIVE answer")
+
+    status, body = post(server, "/api/ask", {"question": "How are while loops different from for loops?"})
+    assert status == 200
+    assert "For loops" in captured["context"]
+    assert body["used_journal"] is True
+
+
+def test_ask_respects_use_journal_false(server, monkeypatch):
+    import ai_integration, web_server
+
+    ai_integration.save_config({"provider": "groq", "api_keys": {"groq": "k"}})
+    post(server, "/api/entries", {"topic": "For loops", "body": "A for loop repeats a fixed number of times."})
+
+    captured = {}
+    monkeypatch.setattr(web_server, "live_answer",
+                        lambda *a, **k: captured.update(context=k.get("context", "")) or "LIVE answer")
+
+    status, body = post(server, "/api/ask",
+                        {"question": "What is a variable?", "use_journal": False})
+    assert status == 200
+    assert captured["context"] == ""
+    assert body.get("used_journal") is False
+
+
+def test_journal_context_empty_when_no_entries(server):
+    import web_server
+    assert web_server._journal_context("anything at all") == ""
+
+
 def test_shares_storage_with_cli(server, tmp_path):
     """An entry made over the API must be visible to the CLI modules."""
     post(server, "/api/entries", {"topic": "Shared storage check"})

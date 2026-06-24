@@ -162,6 +162,82 @@ def _entry_detail(entry_id: int) -> dict:
     raise LookupError("Entry not found")
 
 
+def _entry_excerpt(entry: dict, limit: int = 300) -> str:
+    """A short plain-text excerpt of an entry's real content (no metadata)."""
+    try:
+        text = (get_journal_dir() / entry["filename"]).read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    parts: list[str] = []
+    total = 0
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        core = line[2:].strip() if line.startswith(("- ", "* ")) else line
+        if not core:
+            continue
+        # Skip headings, metadata, rules, blockquotes, and template placeholders.
+        if core.startswith(("#", "<!--", "---", "**", ">")):
+            continue
+        if core.startswith("[") and core.endswith("]"):
+            continue
+        parts.append(core)
+        total += len(core)
+        if total >= limit:
+            break
+    out = " ".join(parts)
+    return out if len(out) <= limit else out[:limit].rstrip() + "…"
+
+
+def _journal_context(question: str, max_entries: int = 3, char_budget: int = 1200) -> str:
+    """Build a small context block from the learner's OWN past entries.
+
+    Combines keyword-relevant entries (via search_entries) with the most recent
+    ones, trims each to a short excerpt, and caps the total size so free/low-cost
+    providers stay fast. Everything stays local. Returns "" when nothing useful.
+    """
+    chosen: list[dict] = []
+    seen: set = set()
+
+    # 1) Relevance: entries that match words in the question.
+    try:
+        for entry, _snippet in search_entries(question):
+            eid = entry.get("id")
+            if eid in seen:
+                continue
+            seen.add(eid)
+            chosen.append(entry)
+            if len(chosen) >= max_entries:
+                break
+    except Exception:
+        pass
+
+    # 2) Recency: fill any remaining slots with the newest entries.
+    if len(chosen) < max_entries:
+        for entry in _all_entries_sorted():
+            eid = entry.get("id")
+            if eid in seen:
+                continue
+            seen.add(eid)
+            chosen.append(entry)
+            if len(chosen) >= max_entries:
+                break
+
+    blocks: list[str] = []
+    for entry in chosen:
+        excerpt = _entry_excerpt(entry)
+        if not excerpt:
+            continue
+        topic = (entry.get("topic") or "").strip()
+        blocks.append(f"- {topic}: {excerpt}" if topic else f"- {excerpt}")
+
+    text = "\n".join(blocks).strip()
+    if len(text) > char_budget:
+        text = text[:char_budget].rstrip() + "…"
+    return text
+
+
 def _profile_path() -> Path:
     """Where the learner's display name is stored (local, alongside the index)."""
     return get_journal_dir() / "profile.json"
@@ -373,13 +449,16 @@ def _ask(payload: dict) -> dict:
     if not question:
         raise ValueError("Type a question first.")
 
+    use_journal = payload.get("use_journal", True)
     prov = get_active_provider()
     if prov:
         pid, key, model = prov
+        context = _journal_context(question) if use_journal else ""
         try:
-            answer = live_answer(question, pid, key, model)
+            answer = live_answer(question, pid, key, model, context=context)
             label = save_live_answer(question, answer, pid)
-            return {"ok": True, "matched": True, "answer": answer, "source": label, "message": None}
+            return {"ok": True, "matched": True, "answer": answer, "source": label,
+                    "message": None, "used_journal": bool(context)}
         except RuntimeError as exc:
             answer, matched, _ = answer_offline(question)
             msg = f"Live AI didn't answer ({exc})."

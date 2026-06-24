@@ -110,6 +110,10 @@
   .md details>summary::-webkit-details-marker{display:none;}
   .md details>summary::before{content:"▸ ";}
   .md details[open]>summary::before{content:"▾ ";}
+  .modal label.check{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin:10px 0 0;cursor:pointer;}
+  .modal label.check input{width:auto;}
+  .modal label.check .d{color:var(--muted);font-weight:700;font-size:12px;}
+  .answer .memo{margin-top:10px;font-size:12.5px;font-weight:800;color:var(--teal);}
   .answer .simpler{margin-top:10px;background:#fff;border:1px solid var(--teal-line);color:var(--teal);
     border-radius:10px;padding:7px 13px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;}
   .entry .md{font-weight:700;color:#4a4640;font-size:14px;}
@@ -482,9 +486,13 @@ function openAsk(){
     : 'Beginner questions are answered offline, free. Try: what is an API?';
   const manage = ' <a href="#" class="namelink" onclick="openAISettings();return false">'
     + (on ? '⚙︎ Manage AI' : '⚡ Turn on full AI') + '</a>';
+  const memo = on
+    ? '<label class="check"><input type="checkbox" id="m_usejournal" checked /> Use my journal as context <span class="d">(the Guide builds on what you\'ve already written)</span></label>'
+    : '';
   show(
   '<h3>Ask the Guide</h3><p class="h">'+head+manage+'</p>'+
   '<label>Your question</label><input id="m_q" placeholder="What is a folder?" onkeydown="if(event.key===\'Enter\')doAsk()" />'+
+  memo+
   '<div class="answer" id="m_ans"></div>'+
   '<div class="row"><button class="btn ghost" onclick="closeModal()">Close</button><button class="btn primary" id="m_askbtn" onclick="doAsk()">Ask</button></div>');
   setTimeout(()=>document.getElementById("m_q").focus(),50);}
@@ -496,10 +504,12 @@ async function doAsk(askText){
   lastAskQuestion = q;
   const box=document.getElementById("m_ans");box.classList.add("on");box.innerHTML="Thinking…";
   document.getElementById("m_askbtn").disabled=true;
+  const uj=document.getElementById("m_usejournal");
   try{
-    const data = await apiPost("/api/ask", {question:q});
+    const data = await apiPost("/api/ask", {question:q, use_journal: uj ? uj.checked : false});
     if(data.answer){
       let html = answerHtml(data.answer, data.source||"Answer");
+      if(data.used_journal) html += '<div class="memo">✨ Built on your journal</div>';
       if(data.message) html += '<div style="margin-top:8px;color:#8a5a3a">'+esc(data.message)+'</div>';
       html += '<button class="simpler" onclick="askSimpler()">Make it simpler</button>';
       box.innerHTML = html;
