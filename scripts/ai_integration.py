@@ -210,7 +210,18 @@ def get_active_provider() -> Optional[Tuple[str, str, str]]:
     return None
 
 
+# A browser-like User-Agent. Some providers (e.g. Groq) sit behind Cloudflare,
+# which blocks the default "Python-urllib" agent with a 403 (error 1010). Sending
+# a normal UA avoids that bot block; harmless for the other providers.
+HTTP_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+)
+
+
 def _http_post_json(url: str, body: dict, headers: dict, timeout: int) -> dict:
+    headers = dict(headers)
+    headers.setdefault("User-Agent", HTTP_USER_AGENT)
     req = urllib.request.Request(
         url, data=json.dumps(body).encode("utf-8"), headers=headers, method="POST"
     )
@@ -218,13 +229,15 @@ def _http_post_json(url: str, body: dict, headers: dict, timeout: int) -> dict:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        if exc.code in (401, 403):
-            raise RuntimeError("That API key was rejected. Check it and try again.")
         detail = ""
         try:
             detail = exc.read().decode("utf-8")[:160]
         except Exception:
             pass
+        if exc.code == 401:
+            raise RuntimeError("That API key was rejected. Check it and try again.")
+        if exc.code == 403:
+            raise RuntimeError(f"Access blocked (403). {detail}".strip())
         raise RuntimeError(f"AI provider error ({exc.code}). {detail}".strip())
     except urllib.error.URLError:
         raise RuntimeError("Could not reach the AI provider. Check your internet.")
