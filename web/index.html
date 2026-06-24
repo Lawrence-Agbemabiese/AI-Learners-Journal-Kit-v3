@@ -58,6 +58,9 @@
     border-radius:12px;padding:8px 12px;margin-bottom:12px;}
   .searchbar input{border:0;background:transparent;outline:none;font:inherit;font-weight:700;width:100%;color:var(--ink);}
   .entry{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;background:#fff;}
+  .entry.clickable{transition:border-color .15s ease,box-shadow .15s ease;}
+  .entry.clickable:hover{border-color:var(--teal);box-shadow:var(--shadow);}
+  .entry .readmore{color:var(--teal);font-weight:800;font-size:12.5px;margin-top:8px;}
   .entry .et{font-weight:800;font-size:15px;}
   .entry .em{color:var(--muted);font-size:13px;font-weight:700;margin:3px 0 6px;}
   .tags{display:flex;gap:6px;flex-wrap:wrap;}
@@ -346,7 +349,26 @@ function entryHtml(e){
   if(snip.length>120) snip = snip.slice(0,117)+"…";
   const body = snip ? '<div class="md" style="margin-bottom:8px"><p>'+mdInline(esc(snip))+'</p></div>' : '';
   const tags = (e.tags||[]).map(t=>'<span class="tag">'+esc(t)+'</span>').join("");
-  return '<div class="entry"><div class="et">'+esc(e.topic)+'</div><div class="em">'+esc(e.when||"")+'</div>'+body+'<div class="tags">'+tags+'</div></div>';
+  const open = (e.id!=null);
+  const attr = open ? ' onclick="openEntry('+e.id+')" style="cursor:pointer" title="Open full entry"' : '';
+  const more = open ? '<div class="readmore">Read full entry →</div>' : '';
+  return '<div class="entry'+(open?' clickable':'')+'"'+attr+'><div class="et">'+esc(e.topic)+'</div><div class="em">'+esc(e.when||"")+'</div>'+body+'<div class="tags">'+tags+'</div>'+more+'</div>';
+}
+async function openEntry(id){
+  if(id==null) return;
+  show('<h3>Loading…</h3>');
+  try{
+    const e = await api("/api/entry?id="+encodeURIComponent(id));
+    const tags = (e.tags||[]).map(t=>'<span class="tag">'+esc(t)+'</span>').join("");
+    show('<h3>'+esc(e.topic||"Entry")+'</h3>'+
+      '<p class="h">'+esc(e.when||"")+'</p>'+
+      '<div class="answer on" style="margin-top:0">'+mdToHtml(e.body||"")+'</div>'+
+      (tags?'<div class="tags" style="margin-top:12px">'+tags+'</div>':'')+
+      '<div class="row"><button class="btn primary" onclick="closeModal()">Close</button></div>');
+  }catch(err){
+    show('<h3>Could not open entry</h3><p class="h">'+esc(err.message)+'</p>'+
+      '<div class="row"><button class="btn primary" onclick="closeModal()">Close</button></div>');
+  }
 }
 function renderEntries(list, query){
   const box=document.getElementById("entries");

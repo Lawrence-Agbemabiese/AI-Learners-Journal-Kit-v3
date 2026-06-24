@@ -96,6 +96,29 @@ def test_create_requires_topic(server):
     assert "topic" in body["error"].lower()
 
 
+def test_entry_detail_returns_full_body(server):
+    post(server, "/api/entries", {"topic": "Photosynthesis", "body": "## AI Response\n\nPlants make food from light."})
+    status, listing = get(server, "/api/entries")
+    entry_id = listing["entries"][0]["id"]
+
+    status, detail = get(server, "/api/entry?id=%d" % entry_id)
+    assert status == 200
+    assert detail["topic"] == "Photosynthesis"
+    assert "Plants make food from light." in detail["body"]
+
+
+def test_entry_detail_missing_id_is_400(server):
+    with pytest.raises(urllib.error.HTTPError) as exc:
+        get(server, "/api/entry")
+    assert exc.value.code == 400
+
+
+def test_entry_detail_unknown_id_is_404(server):
+    with pytest.raises(urllib.error.HTTPError) as exc:
+        get(server, "/api/entry?id=999999")
+    assert exc.value.code == 404
+
+
 def test_append_to_latest(server):
     post(server, "/api/entries", {"topic": "Terminal basics"})
     status, body = post(server, "/api/append", {"target": "latest", "content": "Learned about cd."})

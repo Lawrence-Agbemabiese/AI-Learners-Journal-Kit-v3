@@ -142,6 +142,26 @@ def _entry_summary(entry: dict, today: date | None = None) -> dict:
     }
 
 
+def _entry_detail(entry_id: int) -> dict:
+    """Full entry: summary fields plus the complete saved Markdown body.
+
+    The entries list only carries a one-line preview; this lets the web UI
+    open an entry and read everything that was saved (e.g. a full AI answer).
+    """
+    today = date.today()
+    for entry in _all_entries_sorted():
+        if entry.get("id") == entry_id:
+            detail = _entry_summary(entry, today)
+            try:
+                detail["body"] = (
+                    get_journal_dir() / entry["filename"]
+                ).read_text(encoding="utf-8")
+            except OSError:
+                detail["body"] = ""
+            return detail
+    raise LookupError("Entry not found")
+
+
 def _profile_path() -> Path:
     """Where the learner's display name is stored (local, alongside the index)."""
     return get_journal_dir() / "profile.json"
@@ -491,6 +511,18 @@ class JournalHandler(BaseHTTPRequestHandler):
                     except ValueError:
                         pass
                 return self._send_json({"entries": entries})
+            if path == "/api/entry":
+                id_vals = query.get("id")
+                if not id_vals:
+                    return self._send_json({"error": "Missing entry id"}, 400)
+                try:
+                    entry_id = int(id_vals[0])
+                except (TypeError, ValueError):
+                    return self._send_json({"error": "Invalid entry id"}, 400)
+                try:
+                    return self._send_json(_entry_detail(entry_id))
+                except LookupError as exc:
+                    return self._send_json({"error": str(exc)}, 404)
             if path == "/api/search":
                 q = (query.get("q") or [""])[0]
                 today = date.today()
