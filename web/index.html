@@ -83,6 +83,34 @@
   .btn.ghost{background:#F2EEE7;color:var(--ink);}
   .answer{background:var(--teal-soft);border:1px solid var(--teal-line);border-radius:14px;padding:14px;margin-top:14px;font-weight:700;line-height:1.5;color:#0c5c50;display:none;}
   .answer.on{display:block;max-height:min(52dvh,520px);overflow-y:auto;}
+  .answer .src{font-weight:800;}
+  /* calm Markdown styling, scoped to rendered content */
+  .md{font-weight:700;line-height:1.55;}
+  .md p{margin:0 0 8px;}
+  .md p:last-child{margin-bottom:0;}
+  .md h1,.md h2,.md h3{margin:10px 0 6px;line-height:1.3;font-weight:800;}
+  .md h1{font-size:17px;} .md h2{font-size:16px;} .md h3{font-size:14.5px;}
+  .md ul,.md ol{margin:6px 0 8px;padding-left:22px;}
+  .md li{margin:3px 0;}
+  .md strong{font-weight:800;}
+  .md em{font-style:italic;font-weight:700;}
+  .md code{background:rgba(12,92,80,.10);border:1px solid var(--teal-line);border-radius:6px;
+    padding:1px 5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em;font-weight:700;}
+  .md pre{background:#0d3b35;color:#e8fbf6;border-radius:10px;padding:11px 13px;overflow-x:auto;margin:8px 0;}
+  .md pre code{background:none;border:0;padding:0;color:inherit;font-size:12.5px;line-height:1.45;display:block;}
+  .md table{border-collapse:collapse;margin:8px 0;font-size:13px;width:100%;}
+  .md th,.md td{border:1px solid var(--teal-line);padding:5px 9px;text-align:left;}
+  .md th{background:rgba(12,92,80,.08);font-weight:800;}
+  .md details{margin-top:8px;}
+  .md details>summary{cursor:pointer;font-weight:800;color:var(--teal);list-style:none;user-select:none;
+    padding:6px 0;border-top:1px dashed var(--teal-line);}
+  .md details>summary::-webkit-details-marker{display:none;}
+  .md details>summary::before{content:"▸ ";}
+  .md details[open]>summary::before{content:"▾ ";}
+  .answer .simpler{margin-top:10px;background:#fff;border:1px solid var(--teal-line);color:var(--teal);
+    border-radius:10px;padding:7px 13px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;}
+  .entry .md{font-weight:700;color:#4a4640;font-size:14px;}
+  .entry .md p{margin:0;}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
     background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;font-weight:800;font-size:14px;
     opacity:0;transition:all .25s ease;z-index:60;pointer-events:none;}
@@ -192,6 +220,84 @@ const HC=["#ECE7DF","#BFE6DE","#7FCFC2","#36A493","#0F766E"];
 
 function esc(s){return (s+"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
+// ---- Tiny, offline, safe Markdown renderer --------------------------------
+// Security model: we never trust raw HTML. We escape EVERYTHING first, then
+// only ever add tags we generate ourselves. So AI/user text can't inject HTML.
+function mdInline(s){
+  // s is already HTML-escaped. Apply inline styles on the safe string.
+  // inline code first so its contents aren't touched by bold/italic
+  s = s.replace(/`([^`]+)`/g, (_,c)=>'<code>'+c+'</code>');
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  s = s.replace(/\b_([^_\n]+)_\b/g, '<em>$1</em>');
+  return s;
+}
+function mdToHtml(src){
+  const lines = esc(src==null?"":src).split(/\r?\n/);
+  let out=[], i=0;
+  const flushList=(tag,items)=>{ if(items.length){ out.push('<'+tag+'>'+items.map(x=>'<li>'+mdInline(x)+'</li>').join('')+'</'+tag+'>'); } };
+  while(i<lines.length){
+    let ln = lines[i];
+    // fenced code block
+    const fence = ln.match(/^\s*```(.*)$/);
+    if(fence){
+      let code=[]; i++;
+      while(i<lines.length && !/^\s*```/.test(lines[i])){ code.push(lines[i]); i++; }
+      i++; // skip closing fence
+      out.push('<pre><code>'+code.join('\n')+'</code></pre>');
+      continue;
+    }
+    // table: header row + separator row of ---|---
+    if(/\|/.test(ln) && i+1<lines.length && /^\s*\|?[\s:|-]*-[\s:|-]*\|?\s*$/.test(lines[i+1])){
+      const cells = r => r.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|').map(c=>c.trim());
+      const head = cells(ln);
+      i+=2; let rows=[];
+      while(i<lines.length && /\|/.test(lines[i]) && lines[i].trim()!==''){ rows.push(cells(lines[i])); i++; }
+      let t='<table><thead><tr>'+head.map(h=>'<th>'+mdInline(h)+'</th>').join('')+'</tr></thead><tbody>';
+      t+=rows.map(r=>'<tr>'+r.map(c=>'<td>'+mdInline(c)+'</td>').join('')+'</tr>').join('');
+      t+='</tbody></table>';
+      out.push(t);
+      continue;
+    }
+    // heading
+    const h = ln.match(/^\s*(#{1,3})\s+(.*)$/);
+    if(h){ out.push('<h'+h[1].length+'>'+mdInline(h[2])+'</h'+h[1].length+'>'); i++; continue; }
+    // unordered list
+    if(/^\s*[-*]\s+/.test(ln)){
+      let items=[];
+      while(i<lines.length && /^\s*[-*]\s+/.test(lines[i])){ items.push(lines[i].replace(/^\s*[-*]\s+/,'')); i++; }
+      flushList('ul',items); continue;
+    }
+    // ordered list
+    if(/^\s*\d+\.\s+/.test(ln)){
+      let items=[];
+      while(i<lines.length && /^\s*\d+\.\s+/.test(lines[i])){ items.push(lines[i].replace(/^\s*\d+\.\s+/,'')); i++; }
+      flushList('ol',items); continue;
+    }
+    // blank line
+    if(ln.trim()===''){ i++; continue; }
+    // paragraph (gather consecutive plain lines)
+    let para=[ln]; i++;
+    while(i<lines.length && lines[i].trim()!=='' && !/^\s*([-*]\s+|\d+\.\s+|#{1,3}\s+|```)/.test(lines[i]) && !/\|/.test(lines[i])){
+      para.push(lines[i]); i++;
+    }
+    out.push('<p>'+mdInline(para.join('<br>'))+'</p>');
+  }
+  return '<div class="md">'+out.join('')+'</div>';
+}
+// Split rendered answer: first block shown, rest behind a "Show steps" expander.
+function answerHtml(srcAnswer, label){
+  const raw = (srcAnswer==null?"":srcAnswer);
+  const parts = raw.split(/\n\s*\n/);           // paragraphs/blocks (raw text)
+  const first = parts.shift() || raw;
+  const rest = parts.join("\n\n").trim();
+  let html = '<div class="src">'+esc(label||"Answer")+'</div>'+mdToHtml(first);
+  if(rest){
+    html += '<details><summary>Show steps</summary>'+mdToHtml(rest)+'</details>';
+  }
+  return html;
+}
+
 // ---- stats / heatmap / badges --------------------------------------------
 async function loadStats(){
   try{
@@ -235,8 +341,10 @@ function renderBadges(badges){
 // ---- entries + search -----------------------------------------------------
 function entryHtml(e){
   let snip = e.snippet || e.preview || "";
+  // strip block markdown markers so the preview reads as one calm line
+  snip = snip.replace(/```/g,"").replace(/^#{1,3}\s+/gm,"").replace(/^\s*[-*]\s+/gm,"").replace(/^\s*\d+\.\s+/gm,"").replace(/\s+/g," ").trim();
   if(snip.length>120) snip = snip.slice(0,117)+"…";
-  const body = snip ? '<div style="font-weight:700;color:#4a4640;font-size:14px;margin-bottom:8px">'+esc(snip)+'</div>' : '';
+  const body = snip ? '<div class="md" style="margin-bottom:8px"><p>'+mdInline(esc(snip))+'</p></div>' : '';
   const tags = (e.tags||[]).map(t=>'<span class="tag">'+esc(t)+'</span>').join("");
   return '<div class="entry"><div class="et">'+esc(e.topic)+'</div><div class="em">'+esc(e.when||"")+'</div>'+body+'<div class="tags">'+tags+'</div></div>';
 }
@@ -358,22 +466,31 @@ function openAsk(){
   '<div class="answer" id="m_ans"></div>'+
   '<div class="row"><button class="btn ghost" onclick="closeModal()">Close</button><button class="btn primary" id="m_askbtn" onclick="doAsk()">Ask</button></div>');
   setTimeout(()=>document.getElementById("m_q").focus(),50);}
-async function doAsk(){
-  const q=document.getElementById("m_q").value.trim();
+let lastAskQuestion="";
+async function doAsk(askText){
+  const typed = document.getElementById("m_q").value.trim();
+  const q = (typeof askText==="string" && askText) ? askText : typed;
   if(!q){toast("Type a question 🙂");return;}
+  lastAskQuestion = q;
   const box=document.getElementById("m_ans");box.classList.add("on");box.innerHTML="Thinking…";
   document.getElementById("m_askbtn").disabled=true;
   try{
     const data = await apiPost("/api/ask", {question:q});
     if(data.answer){
-      box.innerHTML="<strong>"+esc(data.source||"Answer")+":</strong> "+esc(data.answer);
-      if(data.message) box.innerHTML+='<div style="margin-top:8px;color:#8a5a3a">'+esc(data.message)+'</div>';
+      let html = answerHtml(data.answer, data.source||"Answer");
+      if(data.message) html += '<div style="margin-top:8px;color:#8a5a3a">'+esc(data.message)+'</div>';
+      html += '<button class="simpler" onclick="askSimpler()">Make it simpler</button>';
+      box.innerHTML = html;
     } else {
-      box.innerHTML="<strong>Not yet:</strong> "+esc(data.message||"I've saved your question so you can come back to it.");
+      box.innerHTML='<div class="md"><strong>Not yet:</strong> '+esc(data.message||"I've saved your question so you can come back to it.")+'</div>';
     }
     await refresh();
-  }catch(e){ box.innerHTML="Sorry — something went wrong: "+esc(e.message); }
+  }catch(e){ box.innerHTML='<div class="md">Sorry — something went wrong: '+esc(e.message)+'</div>'; }
   document.getElementById("m_askbtn").disabled=false;
+}
+function askSimpler(){
+  if(!lastAskQuestion) return;
+  doAsk("Explain this very simply, like I am 10 years old, in a few short steps: "+lastAskQuestion);
 }
 
 // ---- Turn on full AI ------------------------------------------------------
