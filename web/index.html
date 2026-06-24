@@ -380,7 +380,7 @@ async function runSearch(q){
     renderEntries(data.entries||[], q);
   }catch(e){ /* ignore transient search errors */ }
 }
-function focusSearch(){document.getElementById("search").focus();window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});}
+function focusSearch(){const s=document.getElementById("search");s.scrollIntoView({behavior:"smooth",block:"center"});s.focus({preventScroll:true});}
 
 // ---- AI status ------------------------------------------------------------
 async function loadAiStatus(){
