@@ -226,4 +226,12 @@ See `PRIVACY.md`. The core journal stores data locally. Optional AI prompts are 
 
 ## License
 
-MIT. See `LICENSE`.
+AI Learner's Journal Kit is licensed under the **PolyForm Noncommercial License 1.0.0**.
+It is free to use, modify, and share for **noncommercial** purposes, including
+personal study and use by educational institutions, nonprofits, public research
+organizations, and government bodies.
+
+**Commercial use** — including selling the software, charging for it, or charging
+for a product or service built substantially on it — **requires a separate
+commercial license.** For commercial licensing, contact Lawrence Agbemabiese
+<agbe@udel.edu>. See `LICENSE` for full terms.

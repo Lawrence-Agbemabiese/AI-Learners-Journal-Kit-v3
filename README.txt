@@ -50,4 +50,5 @@ Verify high-stakes topics with a trusted expert or source.
 Read SUPPORT.md, PRIVACY.md, REFUND_POLICY.md, and SECURITY.md before paid distribution.
 
 Version: 3.0
-License: MIT
+License: PolyForm Noncommercial License 1.0.0 (commercial use requires a separate
+license; contact agbe@udel.edu). See LICENSE.
