@@ -12,7 +12,6 @@ from typing import Dict, List, Optional, Tuple
 
 from entry_saver import create_entry
 
-
 # ---------------------------------------------------------------------------
 # Offline "Starter Guide" brain.
 # The AI features need an API key, which a brand-new learner will not have on
@@ -238,7 +237,8 @@ def _http_post_json(url: str, body: dict, headers: dict, timeout: int) -> dict:
         url, data=json.dumps(body).encode("utf-8"), headers=headers, method="POST"
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        # url is always a fixed HTTPS provider endpoint from PROVIDERS.
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = ""
@@ -275,8 +275,12 @@ def _build_user_content(question: str, context: str = "") -> str:
 
 
 def live_answer(
-    question: str, provider: str, api_key: str, model: Optional[str] = None,
-    timeout: int = 30, context: str = "",
+    question: str,
+    provider: str,
+    api_key: str,
+    model: Optional[str] = None,
+    timeout: int = 30,
+    context: str = "",
 ) -> str:
     """Ask a live AI provider over HTTPS and return the answer text.
 
@@ -345,9 +349,7 @@ def live_answer(
 def save_live_answer(question: str, answer: str, provider: str) -> str:
     """Save a live AI answer to the journal; return the provider's display label."""
     label = PROVIDERS.get(provider, {}).get("label", provider.title())
-    content = "\n".join(
-        ["**Source:** " + label, "", "## AI Response", "", answer, ""]
-    )
+    content = "\n".join(["**Source:** " + label, "", "## AI Response", "", answer, ""])
     create_entry(
         question,
         content,

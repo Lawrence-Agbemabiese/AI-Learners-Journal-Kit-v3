@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import shutil
-import textwrap
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,17 +14,14 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
-    KeepTogether,
     ListFlowable,
     ListItem,
-    PageBreak,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
     Table,
     TableStyle,
 )
-
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "output" / "pdf"
@@ -133,7 +129,9 @@ def footer(canvas, doc):
     canvas.saveState()
     canvas.setFont("Helvetica", 8)
     canvas.setFillColor(colors.HexColor("#6b7280"))
-    footer_text = "AI Learner's Journal Kit | AgenticPPA | Independent learning support resource"
+    footer_text = (
+        "AI Learner's Journal Kit | AgenticPPA | Independent learning support resource"
+    )
     canvas.drawCentredString(A4[0] / 2, 0.42 * inch, footer_text)
     canvas.drawRightString(A4[0] - 0.55 * inch, 0.42 * inch, f"Page {doc.page}")
     canvas.restoreState()
@@ -187,7 +185,9 @@ def build_doc(spec: DocSpec) -> Path:
         else:
             for block in content:  # type: ignore[assignment]
                 if block.startswith("- "):
-                    items = [line[2:] for line in block.splitlines() if line.startswith("- ")]
+                    items = [
+                        line[2:] for line in block.splitlines() if line.startswith("- ")
+                    ]
                     story.append(bullet_list(items, s["bullet"]))
                     story.append(Spacer(1, 5))
                 else:
@@ -306,7 +306,10 @@ def student_pack() -> DocSpec:
             (
                 "Internship and scholarship tracker",
                 [
-                    ["Opportunity", "Deadline, requirements, portfolio evidence, status, next action"],
+                    [
+                        "Opportunity",
+                        "Deadline, requirements, portfolio evidence, status, next action",
+                    ],
                     ["Opportunity 1", "____"],
                     ["Opportunity 2", "____"],
                     ["Opportunity 3", "____"],
@@ -345,12 +348,27 @@ def facilitator_pack() -> DocSpec:
                         "Time",
                         "Activity",
                     ],
-                    ["0-10 min", "Why portfolio proof matters more than passive course completion."],
-                    ["10-25 min", "Show examples of a weak learning note vs a strong project note."],
+                    [
+                        "0-10 min",
+                        "Why portfolio proof matters more than passive course completion.",
+                    ],
+                    [
+                        "10-25 min",
+                        "Show examples of a weak learning note vs a strong project note.",
+                    ],
                     ["25-45 min", "Learners complete their first project reflection."],
-                    ["45-65 min", "Prompt log exercise: improve one AI prompt and explain the change."],
-                    ["65-90 min", "Pair review: each learner explains one project story."],
-                    ["90-120 min", "Commitment: choose one portfolio improvement for the next 7 days."],
+                    [
+                        "45-65 min",
+                        "Prompt log exercise: improve one AI prompt and explain the change.",
+                    ],
+                    [
+                        "65-90 min",
+                        "Pair review: each learner explains one project story.",
+                    ],
+                    [
+                        "90-120 min",
+                        "Commitment: choose one portfolio improvement for the next 7 days.",
+                    ],
                 ],
             ),
             (
@@ -360,9 +378,15 @@ def facilitator_pack() -> DocSpec:
                         "Area",
                         "What to look for",
                     ],
-                    ["Clarity", "Can the learner explain the project problem and outcome?"],
+                    [
+                        "Clarity",
+                        "Can the learner explain the project problem and outcome?",
+                    ],
                     ["Evidence", "Are screenshots, links, code, or notes included?"],
-                    ["Reflection", "Does the learner explain mistakes and improvements?"],
+                    [
+                        "Reflection",
+                        "Does the learner explain mistakes and improvements?",
+                    ],
                     ["AI use", "Does the prompt log show judgment and adaptation?"],
                     ["Next step", "Is there a clear plan for improving the project?"],
                 ],
@@ -389,14 +413,23 @@ def write_readme(path: Path, title: str, lines: list[str], crlf: bool = False) -
 # visuals, promo, full release bundle) while remaining a working journaling app.
 STARTER_MEMBERS = [
     ("ai-journal", "ai-coding-journal-starter/ai-journal"),
-    ("Start AI Journal (Web).command", "ai-coding-journal-starter/Start AI Journal (Web).command"),
-    ("Start AI Journal (Web).bat", "ai-coding-journal-starter/Start AI Journal (Web).bat"),
+    (
+        "Start AI Journal (Web).command",
+        "ai-coding-journal-starter/Start AI Journal (Web).command",
+    ),
+    (
+        "Start AI Journal (Web).bat",
+        "ai-coding-journal-starter/Start AI Journal (Web).bat",
+    ),
     ("Start AI Journal.command", "ai-coding-journal-starter/Start AI Journal.command"),
     ("Start AI Journal.bat", "ai-coding-journal-starter/Start AI Journal.bat"),
     ("scripts/journal_cli.py", "ai-coding-journal-starter/scripts/journal_cli.py"),
     ("scripts/entry_saver.py", "ai-coding-journal-starter/scripts/entry_saver.py"),
     ("scripts/auto_append.py", "ai-coding-journal-starter/scripts/auto_append.py"),
-    ("scripts/ai_integration.py", "ai-coding-journal-starter/scripts/ai_integration.py"),
+    (
+        "scripts/ai_integration.py",
+        "ai-coding-journal-starter/scripts/ai_integration.py",
+    ),
     ("scripts/web_server.py", "ai-coding-journal-starter/scripts/web_server.py"),
     ("web/index.html", "ai-coding-journal-starter/web/index.html"),
     ("requirements.txt", "ai-coding-journal-starter/requirements.txt"),
@@ -436,21 +469,21 @@ def build_bundles(files: list[Path]) -> dict[str, str]:
             "OPTION B - RUN THE APP IN YOUR BROWSER (recommended, needs Python 3)",
             "This opens a friendly page with buttons - no commands to type.",
             "Open the ai-coding-journal-starter folder, then:",
-            "Mac: double-click \"Start AI Journal (Web).command\".",
-            "Windows: double-click \"Start AI Journal (Web).bat\".",
+            'Mac: double-click "Start AI Journal (Web).command".',
+            'Windows: double-click "Start AI Journal (Web).bat".',
             "Your web browser opens automatically. Keep the little window open while you write;",
             "press Ctrl-C in it when you are done. Your notes are saved on your own computer.",
             "",
             "THE FIRST TIME, YOUR COMPUTER MAY WARN YOU (this is normal - the file is safe):",
-            "Mac (\"Apple could not verify...\"): click Done (NOT Move to Trash). Then open",
+            'Mac ("Apple could not verify..."): click Done (NOT Move to Trash). Then open',
             "     System Settings > Privacy & Security, scroll down to the Security section, and",
-            "     click \"Open Anyway\" next to the launcher. Enter your password if asked, then",
+            '     click "Open Anyway" next to the launcher. Enter your password if asked, then',
             "     click Open. After this, the double-click works normally.",
-            "Windows (\"Windows protected your PC\"): click \"More info\", then \"Run anyway\".",
+            'Windows ("Windows protected your PC"): click "More info", then "Run anyway".',
             "",
             "OPTION C - TEXT MENU IN THE TERMINAL (always works)",
-            "Prefer the classic menu? Use \"Start AI Journal.command\" (Mac) or",
-            "\"Start AI Journal.bat\" (Windows). Or run it by hand:",
+            'Prefer the classic menu? Use "Start AI Journal.command" (Mac) or',
+            '"Start AI Journal.bat" (Windows). Or run it by hand:',
             "1. Open the Terminal app (press Cmd+Space, type Terminal, press Return).",
             "2. Type these letters and a space - do NOT press Return yet:  cd ",
             "3. Drag the ai-coding-journal-starter folder onto the Terminal window. Its",
@@ -464,7 +497,7 @@ def build_bundles(files: list[Path]) -> dict[str, str]:
             "Install it free from https://www.python.org/downloads/ then try Option B again.",
             "",
             "ASKING THE AI",
-            "Beginner questions (like \"what is an API?\") are answered offline for free by the",
+            'Beginner questions (like "what is an API?") are answered offline for free by the',
             "built-in Starter Guide - no setup needed. For AI answers to ANY question, turn on",
             "full AI with a provider key. Easiest free option (no card needed): a Groq key from",
             "https://console.groq.com/keys . Claude and ChatGPT keys are paid; Gemini's free tier",
@@ -547,7 +580,10 @@ def build_bundles(files: list[Path]) -> dict[str, str]:
             (facilitator_pdf, "facilitator-cohort-license-guide.pdf"),
             (student_pdf, "student-portfolio-pack.pdf"),
             (free_pdf, "free-7-day-journal.pdf"),
-            (ROOT / "docs" / "Workshop_Facilitator_Guide.md", "workshop-facilitator-guide.md"),
+            (
+                ROOT / "docs" / "Workshop_Facilitator_Guide.md",
+                "workshop-facilitator-guide.md",
+            ),
             (readme_facilitator, "README.txt"),
         ],
     )

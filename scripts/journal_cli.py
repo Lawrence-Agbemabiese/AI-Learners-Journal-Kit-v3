@@ -200,7 +200,9 @@ def search_entries(query: str) -> list[tuple[dict, Optional[str]]]:
                     and not stripped.startswith("#")
                     and not stripped.startswith("<!--")
                 ):
-                    snippet = stripped if len(stripped) <= 100 else stripped[:97] + "..."
+                    snippet = (
+                        stripped if len(stripped) <= 100 else stripped[:97] + "..."
+                    )
                     break
 
         if in_meta or snippet is not None:
@@ -391,7 +393,9 @@ def build_parser() -> argparse.ArgumentParser:
     ask_parser.add_argument("options", nargs=argparse.REMAINDER)
     ask_parser.set_defaults(func=cmd_ask)
 
-    web_parser = subparsers.add_parser("web", help="Open the friendly web UI in a browser")
+    web_parser = subparsers.add_parser(
+        "web", help="Open the friendly web UI in a browser"
+    )
     web_parser.add_argument("--port", type=int, default=None)
     web_parser.add_argument("--no-browser", action="store_true")
     web_parser.set_defaults(func=cmd_web)

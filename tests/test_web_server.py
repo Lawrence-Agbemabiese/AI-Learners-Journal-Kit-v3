@@ -6,7 +6,6 @@ the web layer and the CLI share the same storage and reuse the same logic.
 """
 
 import json
-import os
 import sys
 import threading
 import urllib.error
@@ -26,7 +25,12 @@ def server(tmp_path, monkeypatch):
     """Start the web server on a free port against a temp journal dir."""
     monkeypatch.setenv("AI_JOURNAL_DIR", str(tmp_path / "AI-Journal"))
     monkeypatch.setenv("AI_JOURNAL_CONFIG", str(tmp_path / "ai-config.json"))
-    for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "GROQ_API_KEY"):
+    for key in (
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY",
+        "GROQ_API_KEY",
+    ):
         monkeypatch.delenv(key, raising=False)
 
     import web_server  # imported after env is set
@@ -76,7 +80,15 @@ def test_stats_empty(server):
 
 
 def test_create_entry_then_stats_and_list(server):
-    status, body = post(server, "/api/entries", {"topic": "My first loop", "tags": "python, beginner", "body": "Used a for loop."})
+    status, body = post(
+        server,
+        "/api/entries",
+        {
+            "topic": "My first loop",
+            "tags": "python, beginner",
+            "body": "Used a for loop.",
+        },
+    )
     assert status == 200 and body["ok"] is True
 
     status, stats = get(server, "/api/stats")
@@ -97,7 +109,14 @@ def test_create_requires_topic(server):
 
 
 def test_entry_detail_returns_full_body(server):
-    post(server, "/api/entries", {"topic": "Photosynthesis", "body": "## AI Response\n\nPlants make food from light."})
+    post(
+        server,
+        "/api/entries",
+        {
+            "topic": "Photosynthesis",
+            "body": "## AI Response\n\nPlants make food from light.",
+        },
+    )
     status, listing = get(server, "/api/entries")
     entry_id = listing["entries"][0]["id"]
 
@@ -121,7 +140,9 @@ def test_entry_detail_unknown_id_is_404(server):
 
 def test_append_to_latest(server):
     post(server, "/api/entries", {"topic": "Terminal basics"})
-    status, body = post(server, "/api/append", {"target": "latest", "content": "Learned about cd."})
+    status, body = post(
+        server, "/api/append", {"target": "latest", "content": "Learned about cd."}
+    )
     assert status == 200 and body["ok"] is True
     assert body["topic"] == "Terminal basics"
 
@@ -148,7 +169,9 @@ def test_ask_known_question_saves_starter_guide(server):
 
 
 def test_ask_unknown_question_is_saved_pending(server):
-    status, body = post(server, "/api/ask", {"question": "Explain monad transformers in Haskell"})
+    status, body = post(
+        server, "/api/ask", {"question": "Explain monad transformers in Haskell"}
+    )
     assert status == 200
     assert body["matched"] is False
     assert body["answer"] is None
@@ -158,7 +181,11 @@ def test_ask_unknown_question_is_saved_pending(server):
 
 
 def test_search_matches_topic(server):
-    post(server, "/api/entries", {"topic": "Loops in Python", "body": "for loops are fun"})
+    post(
+        server,
+        "/api/entries",
+        {"topic": "Loops in Python", "body": "for loops are fun"},
+    )
     post(server, "/api/entries", {"topic": "CSS colors", "body": "hex codes"})
     status, res = get(server, "/api/search?q=python")
     assert status == 200
@@ -168,7 +195,12 @@ def test_search_matches_topic(server):
 
 
 def test_cross_origin_post_blocked(server):
-    status, body = post(server, "/api/ask", {"question": "What is git?"}, headers={"Origin": "http://evil.example.com"})
+    status, body = post(
+        server,
+        "/api/ask",
+        {"question": "What is git?"},
+        headers={"Origin": "http://evil.example.com"},
+    )
     assert status == 403
 
 
@@ -193,7 +225,9 @@ def test_entry_preview_skips_placeholders(tmp_path, monkeypatch):
     assert web_server._entry_preview({"filename": "e.md"}) == ""
 
     # Real content -> shown without the leading bullet.
-    p.write_text("# Topic\n\n## Key Points\n\n- I learned about loops.\n", encoding="utf-8")
+    p.write_text(
+        "# Topic\n\n## Key Points\n\n- I learned about loops.\n", encoding="utf-8"
+    )
     assert web_server._entry_preview({"filename": "e.md"}) == "I learned about loops."
 
 
@@ -236,24 +270,37 @@ def test_live_answer_parsers(monkeypatch):
     """Each provider style parses its own response shape correctly."""
     import ai_integration as ai
 
-    monkeypatch.setattr(ai, "_http_post_json",
-                        lambda *a, **k: {"choices": [{"message": {"content": "  oa  "}}]})
-    assert ai.live_answer("q", "groq", "k") == "oa"      # openai-compatible
+    monkeypatch.setattr(
+        ai,
+        "_http_post_json",
+        lambda *a, **k: {"choices": [{"message": {"content": "  oa  "}}]},
+    )
+    assert ai.live_answer("q", "groq", "k") == "oa"  # openai-compatible
 
-    monkeypatch.setattr(ai, "_http_post_json",
-                        lambda *a, **k: {"candidates": [{"content": {"parts": [{"text": "gm"}]}}]})
+    monkeypatch.setattr(
+        ai,
+        "_http_post_json",
+        lambda *a, **k: {"candidates": [{"content": {"parts": [{"text": "gm"}]}}]},
+    )
     assert ai.live_answer("q", "gemini", "k") == "gm"
 
-    monkeypatch.setattr(ai, "_http_post_json",
-                        lambda *a, **k: {"content": [{"type": "text", "text": "claude!"}]})
+    monkeypatch.setattr(
+        ai,
+        "_http_post_json",
+        lambda *a, **k: {"content": [{"type": "text", "text": "claude!"}]},
+    )
     assert ai.live_answer("q", "anthropic", "k") == "claude!"
 
 
 def test_set_ai_key_then_ask_live(server, monkeypatch):
     import web_server
 
-    monkeypatch.setattr(web_server, "live_answer", lambda *a, **k: "LIVE: a folder holds files.")
-    status, body = post(server, "/api/ai/key", {"provider": "groq", "api_key": "test-key-1234"})
+    monkeypatch.setattr(
+        web_server, "live_answer", lambda *a, **k: "LIVE: a folder holds files."
+    )
+    status, body = post(
+        server, "/api/ai/key", {"provider": "groq", "api_key": "test-key-1234"}
+    )
     assert status == 200 and body["enabled"] is True
     assert body["label"] == "Groq" and body["masked"].endswith("1234")
 
@@ -282,15 +329,20 @@ def test_set_ai_key_rejects_bad_key(server, monkeypatch):
 
 
 def test_ask_falls_back_to_offline_when_live_fails(server, monkeypatch):
-    import ai_integration, web_server
+    import ai_integration
+    import web_server
 
     # Enable AI directly (skip validation), then make live calls fail.
     ai_integration.save_config({"provider": "groq", "api_keys": {"groq": "k"}})
-    monkeypatch.setattr(web_server, "live_answer", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("network down")))
+    monkeypatch.setattr(
+        web_server,
+        "live_answer",
+        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("network down")),
+    )
 
     status, body = post(server, "/api/ask", {"question": "what is an API?"})
     assert status == 200
-    assert body["source"] == "Starter Guide"   # offline fallback kicked in
+    assert body["source"] == "Starter Guide"  # offline fallback kicked in
     assert "waiter" in body["answer"].lower()
     assert "network down" in body["message"]
 
@@ -316,8 +368,12 @@ def test_live_answer_includes_journal_context(monkeypatch):
         return {"choices": [{"message": {"content": "ok"}}]}
 
     monkeypatch.setattr(ai, "_http_post_json", fake_post)
-    ai.live_answer("How do while loops work?", "groq", "k",
-                   context="- For loops: a for loop repeats a fixed number of times.")
+    ai.live_answer(
+        "How do while loops work?",
+        "groq",
+        "k",
+        context="- For loops: a for loop repeats a fixed number of times.",
+    )
     sent = captured["body"]["messages"][-1]["content"]
     assert "JOURNAL NOTES" in sent
     assert "for loop repeats" in sent
@@ -329,33 +385,54 @@ def test_live_answer_includes_journal_context(monkeypatch):
 
 
 def test_ask_passes_journal_context_to_live_answer(server, monkeypatch):
-    import ai_integration, web_server
+    import ai_integration
+    import web_server
 
     ai_integration.save_config({"provider": "groq", "api_keys": {"groq": "k"}})
-    post(server, "/api/entries", {"topic": "For loops", "body": "A for loop repeats a fixed number of times."})
+    post(
+        server,
+        "/api/entries",
+        {"topic": "For loops", "body": "A for loop repeats a fixed number of times."},
+    )
 
     captured = {}
-    monkeypatch.setattr(web_server, "live_answer",
-                        lambda *a, **k: captured.update(context=k.get("context", "")) or "LIVE answer")
+    monkeypatch.setattr(
+        web_server,
+        "live_answer",
+        lambda *a, **k: captured.update(context=k.get("context", "")) or "LIVE answer",
+    )
 
-    status, body = post(server, "/api/ask", {"question": "How are while loops different from for loops?"})
+    status, body = post(
+        server,
+        "/api/ask",
+        {"question": "How are while loops different from for loops?"},
+    )
     assert status == 200
     assert "For loops" in captured["context"]
     assert body["used_journal"] is True
 
 
 def test_ask_respects_use_journal_false(server, monkeypatch):
-    import ai_integration, web_server
+    import ai_integration
+    import web_server
 
     ai_integration.save_config({"provider": "groq", "api_keys": {"groq": "k"}})
-    post(server, "/api/entries", {"topic": "For loops", "body": "A for loop repeats a fixed number of times."})
+    post(
+        server,
+        "/api/entries",
+        {"topic": "For loops", "body": "A for loop repeats a fixed number of times."},
+    )
 
     captured = {}
-    monkeypatch.setattr(web_server, "live_answer",
-                        lambda *a, **k: captured.update(context=k.get("context", "")) or "LIVE answer")
+    monkeypatch.setattr(
+        web_server,
+        "live_answer",
+        lambda *a, **k: captured.update(context=k.get("context", "")) or "LIVE answer",
+    )
 
-    status, body = post(server, "/api/ask",
-                        {"question": "What is a variable?", "use_journal": False})
+    status, body = post(
+        server, "/api/ask", {"question": "What is a variable?", "use_journal": False}
+    )
     assert status == 200
     assert captured["context"] == ""
     assert body.get("used_journal") is False
@@ -363,6 +440,7 @@ def test_ask_respects_use_journal_false(server, monkeypatch):
 
 def test_journal_context_empty_when_no_entries(server):
     import web_server
+
     assert web_server._journal_context("anything at all") == ""
 
 

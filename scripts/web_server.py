@@ -73,6 +73,7 @@ HEAT_LEVELS = 5  # 0..4
 # Read helpers (presentation only; all journal logic lives in the CLI modules)
 # ---------------------------------------------------------------------------
 
+
 def _parse_created(entry: dict) -> date:
     """Return the calendar date an entry was created."""
     raw = (entry.get("created") or "")[:10]
@@ -153,9 +154,9 @@ def _entry_detail(entry_id: int) -> dict:
         if entry.get("id") == entry_id:
             detail = _entry_summary(entry, today)
             try:
-                detail["body"] = (
-                    get_journal_dir() / entry["filename"]
-                ).read_text(encoding="utf-8")
+                detail["body"] = (get_journal_dir() / entry["filename"]).read_text(
+                    encoding="utf-8"
+                )
             except OSError:
                 detail["body"] = ""
             return detail
@@ -190,7 +191,9 @@ def _entry_excerpt(entry: dict, limit: int = 300) -> str:
     return out if len(out) <= limit else out[:limit].rstrip() + "…"
 
 
-def _journal_context(question: str, max_entries: int = 3, char_budget: int = 1200) -> str:
+def _journal_context(
+    question: str, max_entries: int = 3, char_budget: int = 1200
+) -> str:
     """Build a small context block from the learner's OWN past entries.
 
     Combines keyword-relevant entries (via search_entries) with the most recent
@@ -323,13 +326,13 @@ def _compute_stats() -> dict:
 
     badges = []
     if total >= 1:
-        badges.append({"icon": "\U0001F331", "label": "First entry"})
+        badges.append({"icon": "\U0001f331", "label": "First entry"})
     if streak >= 3:
-        badges.append({"icon": "\U0001F525", "label": "3-day streak"})
+        badges.append({"icon": "\U0001f525", "label": "3-day streak"})
     if asked_guide:
-        badges.append({"icon": "\U0001F4AC", "label": "Asked the Guide"})
+        badges.append({"icon": "\U0001f4ac", "label": "Asked the Guide"})
     if total >= 7:
-        badges.append({"icon": "\U0001F4DA", "label": "7 entries"})
+        badges.append({"icon": "\U0001f4da", "label": "7 entries"})
 
     name, name_set = _display_name()
 
@@ -350,6 +353,7 @@ def _compute_stats() -> dict:
 # ---------------------------------------------------------------------------
 # Write helpers (delegate straight to the reused CLI functions)
 # ---------------------------------------------------------------------------
+
 
 def _create_entry(payload: dict) -> dict:
     topic = (payload.get("topic") or "").strip()
@@ -410,7 +414,12 @@ def _ai_status() -> dict:
     pid, key, _model = prov
     masked = ("••••" + key[-4:]) if len(key) >= 4 else "••••"
     base.update(
-        {"enabled": True, "provider": pid, "label": PROVIDERS[pid]["label"], "masked": masked}
+        {
+            "enabled": True,
+            "provider": pid,
+            "label": PROVIDERS[pid]["label"],
+            "masked": masked,
+        }
     )
     return base
 
@@ -457,8 +466,14 @@ def _ask(payload: dict) -> dict:
         try:
             answer = live_answer(question, pid, key, model, context=context)
             label = save_live_answer(question, answer, pid)
-            return {"ok": True, "matched": True, "answer": answer, "source": label,
-                    "message": None, "used_journal": bool(context)}
+            return {
+                "ok": True,
+                "matched": True,
+                "answer": answer,
+                "source": label,
+                "message": None,
+                "used_journal": bool(context),
+            }
         except RuntimeError as exc:
             answer, matched, _ = answer_offline(question)
             msg = f"Live AI didn't answer ({exc})."
@@ -492,6 +507,7 @@ def _ask(payload: dict) -> dict:
 # ---------------------------------------------------------------------------
 # HTTP handler
 # ---------------------------------------------------------------------------
+
 
 class JournalHandler(BaseHTTPRequestHandler):
     server_version = "AIJournalWeb/1.0"
@@ -636,6 +652,7 @@ class JournalHandler(BaseHTTPRequestHandler):
 # ---------------------------------------------------------------------------
 # Server lifecycle
 # ---------------------------------------------------------------------------
+
 
 def make_server(port: int = DEFAULT_PORT) -> ThreadingHTTPServer:
     """Create (but do not start) the threaded server. port=0 picks a free port."""

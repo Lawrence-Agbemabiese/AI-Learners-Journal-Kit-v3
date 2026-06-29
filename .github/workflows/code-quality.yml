@@ -32,7 +32,9 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        flake8 scripts/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+        # E501 (line length) is owned by Black, which intentionally does not
+        # split long strings/URLs; ignore it here to avoid Black/flake8 conflicts.
+        flake8 scripts/ tests/ --max-line-length=88 --extend-ignore=E203,W503,E501
 
     - name: Check for common shell issues
       uses: ludeeus/action-shellcheck@master

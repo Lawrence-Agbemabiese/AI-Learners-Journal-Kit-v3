@@ -3,7 +3,6 @@
 
 import json
 import os
-import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -148,7 +147,9 @@ def append_to_entry(entry, content, section="Reflection"):
 
     if insert_idx is None:
         # Section header missing: append to the end rather than lose the note.
-        updated_content = current_content.rstrip("\n") + "\n" + "\n".join(new_block) + "\n"
+        updated_content = (
+            current_content.rstrip("\n") + "\n" + "\n".join(new_block) + "\n"
+        )
     else:
         # Skip blank lines after the header, then remove one leftover
         # placeholder hint if present, so the section reads cleanly.
