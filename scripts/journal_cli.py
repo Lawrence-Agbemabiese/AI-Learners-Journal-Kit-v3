@@ -356,6 +356,35 @@ def cmd_menu(args: argparse.Namespace) -> None:
             print("Please choose a number from 1 to 7.")
 
 
+
+def cmd_doctor(args: argparse.Namespace) -> None:
+    """Run an expanded, beginner-friendly health check."""
+    from modern_tools import doctor
+
+    raise SystemExit(doctor())
+
+
+def cmd_reindex(args: argparse.Namespace) -> None:
+    """Rebuild the optional SQLite full-text search index."""
+    from modern_tools import reindex
+
+    raise SystemExit(reindex())
+
+
+def cmd_find(args: argparse.Namespace) -> None:
+    """Run ranked full-text search."""
+    from modern_tools import search_command
+
+    query = args.query or prompt_required("Search words")
+    raise SystemExit(search_command(query, args.limit))
+
+
+def cmd_backup(args: argparse.Namespace) -> None:
+    """Create a portable ZIP backup of the journal."""
+    from modern_tools import backup
+
+    raise SystemExit(backup(args.destination))
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
     parser = argparse.ArgumentParser(
@@ -405,6 +434,21 @@ def build_parser() -> argparse.ArgumentParser:
 
     setup_parser = subparsers.add_parser("setup", help="Run setup checks")
     setup_parser.set_defaults(func=cmd_setup)
+
+    doctor_parser = subparsers.add_parser("doctor", help="Check that AI Journal is ready")
+    doctor_parser.set_defaults(func=cmd_doctor)
+
+    reindex_parser = subparsers.add_parser("reindex", help="Rebuild fast full-text search")
+    reindex_parser.set_defaults(func=cmd_reindex)
+
+    find_parser = subparsers.add_parser("find", help="Ranked full-text journal search")
+    find_parser.add_argument("query", nargs="?")
+    find_parser.add_argument("--limit", type=int, default=20)
+    find_parser.set_defaults(func=cmd_find)
+
+    backup_parser = subparsers.add_parser("backup", help="Create a ZIP backup")
+    backup_parser.add_argument("destination", nargs="?")
+    backup_parser.set_defaults(func=cmd_backup)
 
     return parser
 
