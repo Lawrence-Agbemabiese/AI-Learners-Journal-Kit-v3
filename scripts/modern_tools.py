@@ -14,7 +14,9 @@ from sqlite_index import database_path, rebuild, search
 
 
 def journal_dir() -> Path:
-    return Path(os.environ.get("AI_JOURNAL_DIR", Path.home() / "AI-Journal")).expanduser()
+    return Path(
+        os.environ.get("AI_JOURNAL_DIR", Path.home() / "AI-Journal")
+    ).expanduser()
 
 
 def doctor() -> int:
@@ -27,18 +29,24 @@ def doctor() -> int:
         try:
             data = json.loads(index.read_text(encoding="utf-8"))
             valid = isinstance(data.get("entries", []), list)
-            detail = f"{len(data.get('entries', []))} entries" if valid else "invalid format"
+            detail = (
+                f"{len(data.get('entries', []))} entries" if valid else "invalid format"
+            )
         except (OSError, json.JSONDecodeError) as exc:
             valid, detail = False, str(exc)
         checks.append(("Index contents", valid, detail))
-    checks.append(("Entries folder", (root / "entries").exists(), str(root / "entries")))
+    checks.append(
+        ("Entries folder", (root / "entries").exists(), str(root / "entries"))
+    )
     checks.append(("Python", sys.version_info >= (3, 9), sys.version.split()[0]))
     print("AI Journal setup check\n")
     for label, ok, detail in checks:
         print(f"{'✓' if ok else '✗'} {label}: {detail}")
     failed = [item for item in checks if not item[1]]
     if failed:
-        print("\nSome checks need attention. Running `ai-journal setup` may repair folders.")
+        print(
+            "\nSome checks need attention. Running `ai-journal setup` may repair folders."
+        )
         return 1
     print("\nEverything looks ready.")
     return 0
@@ -73,7 +81,11 @@ def backup(destination: str | None = None) -> int:
         print(f"Journal folder not found: {root}", file=sys.stderr)
         return 1
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    target = Path(destination).expanduser() if destination else Path.home() / f"AI-Journal-backup-{stamp}.zip"
+    target = (
+        Path(destination).expanduser()
+        if destination
+        else Path.home() / f"AI-Journal-backup-{stamp}.zip"
+    )
     target.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in root.rglob("*"):

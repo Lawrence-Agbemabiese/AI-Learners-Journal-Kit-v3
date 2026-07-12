@@ -356,7 +356,6 @@ def cmd_menu(args: argparse.Namespace) -> None:
             print("Please choose a number from 1 to 7.")
 
 
-
 def cmd_doctor(args: argparse.Namespace) -> None:
     """Run an expanded, beginner-friendly health check."""
     from modern_tools import doctor
@@ -384,6 +383,7 @@ def cmd_backup(args: argparse.Namespace) -> None:
     from modern_tools import backup
 
     raise SystemExit(backup(args.destination))
+
 
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
@@ -435,10 +435,14 @@ def build_parser() -> argparse.ArgumentParser:
     setup_parser = subparsers.add_parser("setup", help="Run setup checks")
     setup_parser.set_defaults(func=cmd_setup)
 
-    doctor_parser = subparsers.add_parser("doctor", help="Check that AI Journal is ready")
+    doctor_parser = subparsers.add_parser(
+        "doctor", help="Check that AI Journal is ready"
+    )
     doctor_parser.set_defaults(func=cmd_doctor)
 
-    reindex_parser = subparsers.add_parser("reindex", help="Rebuild fast full-text search")
+    reindex_parser = subparsers.add_parser(
+        "reindex", help="Rebuild fast full-text search"
+    )
     reindex_parser.set_defaults(func=cmd_reindex)
 
     find_parser = subparsers.add_parser("find", help="Ranked full-text journal search")

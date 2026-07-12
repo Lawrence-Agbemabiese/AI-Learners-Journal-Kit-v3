@@ -223,7 +223,14 @@ def update_entry(journal_dir: Path, entry: dict) -> None:
                 tags_json=excluded.tags_json,
                 body=excluded.body
             """,
-            (entry_id, topic, filename, str(entry.get("created") or ""), tags_json, body),
+            (
+                entry_id,
+                topic,
+                filename,
+                str(entry.get("created") or ""),
+                tags_json,
+                body,
+            ),
         )
         conn.execute("DELETE FROM entries_fts WHERE entry_id = ?", (entry_id,))
         conn.execute(
