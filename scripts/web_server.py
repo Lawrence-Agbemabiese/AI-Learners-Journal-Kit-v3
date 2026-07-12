@@ -16,6 +16,8 @@ Design goals:
 Run it:  python3 scripts/web_server.py
 """
 
+from __future__ import annotations
+
 import getpass
 import json
 import os
