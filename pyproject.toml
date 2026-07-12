@@ -62,3 +62,7 @@ python_version = "3.9"
 check_untyped_defs = true
 warn_unused_ignores = true
 exclude = "^(output|marketing|promo|visuals)/"
+
+[tool.isort]
+profile = "black"
+line_length = 88
