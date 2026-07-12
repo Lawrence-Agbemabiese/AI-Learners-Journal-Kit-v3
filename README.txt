@@ -1,54 +1,28 @@
-AI Learner's Journal Kit v3.0
+AI LEARNER'S JOURNAL KIT — START HERE
 
-QUICK START
+NO CODING REQUIRED
 
-macOS:
-1. Right-click installers/Installer.command
-2. Choose Open
-3. Double-click ~/AI-Journal/Start AI Journal.command
+MAC
+1. Unzip the download.
+2. Open the extracted folder.
+3. Double-click: START HERE - AI Journal.command
+4. Leave the Terminal window open while using the browser journal.
 
-Windows:
-1. Double-click installers\Installer.bat
-2. Open a new Command Prompt and run ai-journal
-3. Or double-click %USERPROFILE%\AI-Journal\Start AI Journal.bat
+WINDOWS
+1. Extract the download.
+2. Open the extracted folder.
+3. Double-click: START HERE - AI Journal.bat
+4. Leave the command window open while using the browser journal.
 
-Linux:
-1. Run: chmod +x installers/install_ai_journal_v3.sh
-2. Run: ./installers/install_ai_journal_v3.sh
-3. Run: ai-journal
+IN THE BROWSER
+- Ask the Guide: ask complete learning questions
+- New entry: save what you learned
+- Search my journal: find previous notes
+- Manage AI: choose Groq, OpenAI, Claude, or Gemini when available
 
-BEGINNER MENU
+Your notes stay as plain files on your own computer.
 
-Run ai-journal with no arguments to open a menu:
-1. Create a new journal entry
-2. Add to latest entry
-3. Ask AI and save answer
-4. Search my journal
-5. Open latest entry
-6. Run setup check
-7. Quit
+Never share an API key in screenshots, email, support requests, journal entries, or GitHub.
 
-WHAT IS INCLUDED
-
-- ai-journal CLI and beginner menu
-- Python scripts for saving, appending, listing, searching, and opening entries
-- Optional OpenAI integration using the user's own OPENAI_API_KEY
-- macOS, Linux, and Windows installers
-- Double-click launchers for macOS and Windows
-- Workshop and paid-product readiness documentation
-- Support, privacy, refund, and security policies
-
-NOTES
-
-The core journal works without an API key.
-
-The optional AI workflow requires the OpenAI package and OPENAI_API_KEY.
-
-AI review scores estimate structure and completeness, not factual correctness.
-Verify high-stakes topics with a trusted expert or source.
-
-Read SUPPORT.md, PRIVACY.md, REFUND_POLICY.md, and SECURITY.md before paid distribution.
-
-Version: 3.0
-License: PolyForm Noncommercial License 1.0.0 (commercial use requires a separate
-license; contact agbe@udel.edu). See LICENSE.
+For full instructions, open docs/Quick_Start_v3.md.
+Terminal commands are optional and documented separately.
