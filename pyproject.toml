@@ -23,6 +23,9 @@ dev = [
   "pytest-cov>=5.0",
   "ruff>=0.8",
 ]
+openai = [
+    "openai>=2.45.0",
+]
 
 [project.scripts]
 ai-journal = "journal_cli:main"
