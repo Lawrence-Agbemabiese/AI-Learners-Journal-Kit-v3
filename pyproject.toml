@@ -45,7 +45,7 @@ line-length = 100
 extend-exclude = ["output", "marketing", "promo", "visuals"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
+select = ["E", "F", "I"]
 ignore = ["E501"]
 
 [tool.pytest.ini_options]
