@@ -101,3 +101,37 @@ The release builder now requires the web-first launchers and onboarding document
 See `SUPPORT.md`, `PRIVACY.md`, `SECURITY.md`, and `REFUND_POLICY.md`.
 
 AI answers may be wrong. Verify medical, legal, financial, security, and other high-stakes information with a qualified source.
+
+## More information
+
+### Quick Start
+
+Follow `docs/Quick_Start_v3.md` for the complete browser-first walkthrough.
+
+### Installation
+
+Mac and Windows users should begin with the clearly labeled **START HERE** launcher. Terminal-based installation is optional and documented separately.
+
+### Features
+
+The kit includes a local browser interface, plain-file journal storage, search, learning activity tracking, Ask the Guide, optional AI providers, backups, and advanced command-line tools.
+
+### Workshop Use
+
+Facilitators can use the journal in classes, cohorts, coding clubs, and guided learning workshops. See `docs/Workshop_Facilitator_Guide.md`.
+
+### Paid Product Use
+
+Commercial distribution must use the verified customer release ZIP. See `docs/Paid_Product_Checklist.md` and `docs/Storefront_Distribution_Checklist.md`.
+
+### Support
+
+See `SUPPORT.md` for troubleshooting and help.
+
+### Privacy
+
+See `PRIVACY.md` for data-handling information.
+
+### License
+
+See `LICENSE` for permitted use and distribution terms.
