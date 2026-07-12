@@ -540,10 +540,14 @@ def build_bundles(files: list[Path]) -> dict[str, str]:
         return name.endswith((".command", ".sh")) or name == "ai-journal"
 
     def zip_files(zip_path: Path, members: list[tuple[Path, str]]) -> None:
+        missing = [str(source) for source, _ in members if not source.exists()]
+        if missing:
+            raise FileNotFoundError(
+                f"Refusing to build {zip_path.name} with missing files "
+                f"(would ship an incomplete bundle): {', '.join(missing)}"
+            )
         with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for source, arcname in members:
-                if not source.exists():
-                    continue
                 info = zipfile.ZipInfo.from_file(source, arcname)
                 if _is_executable_member(arcname):
                     # rwxr-xr-x for launchers/wrappers; rw-r--r-- otherwise.
