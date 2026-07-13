@@ -57,9 +57,9 @@ If macOS still blocks it:
 What does grep do?
 ```
 
-3. Leave **Use my journal as context** checked when useful.
-4. Click **Ask**.
-5. Expand **Show steps** for more detail.
+1. Leave **Use my journal as context** checked when useful.
+2. Click **Ask**.
+3. Expand **Show steps** for more detail.
 
 The answer is saved to your journal automatically.
 
