@@ -1,237 +1,137 @@
-# AI Learner's Journal Kit v3.0
+# AI Learner's Journal Kit
 
-AI Learner's Journal Kit turns useful AI conversations, class notes, workshop exercises, and learning moments into a searchable Markdown journal.
+AI Learner's Journal Kit turns useful AI conversations, class notes, workshop exercises, and learning moments into a searchable journal that stays on your own computer.
 
-The current product is a local-first command-line tool with a beginner menu. It is suitable for training workshops, self-paced learners, and paid digital product distribution when packaged from a verified release artifact.
+## Start here — no coding required
 
-## Quick Start
+The friendly browser interface is the recommended way to use AI Journal.
 
 ### macOS
 
-1. Download the release ZIP or clone this repository.
-2. Right-click `installers/Installer.command`.
-3. Choose `Open`, then follow the prompts.
-4. Start the beginner menu:
+1. Download and unzip the customer release.
+2. Open the extracted folder.
+3. Double-click **START HERE - AI Journal.command**.
+4. Your browser opens automatically.
+5. Click **Ask the Guide**, **New entry**, or **Search my journal**.
 
-```bash
-ai-journal
-```
+Keep the small Terminal window open while the journal is running. To stop the journal, return to that window and press **Control + C**.
 
-You can also double-click `~/AI-Journal/Start AI Journal.command` after installation.
+If macOS blocks the launcher, right-click it, choose **Open**, and approve it. See `docs/Quick_Start_v3.md` for illustrated-style troubleshooting steps.
 
 ### Windows
 
-1. Download the release ZIP or clone this repository.
-2. Double-click `installers\Installer.bat`.
-3. Open a new Command Prompt and run:
+1. Download and unzip the customer release.
+2. Open the extracted folder.
+3. Double-click **START HERE - AI Journal.bat**.
+4. Your browser opens automatically.
+5. Click **Ask the Guide**, **New entry**, or **Search my journal**.
 
-```cmd
-ai-journal
-```
-
-If the new terminal does not recognize `ai-journal`, use:
-
-```cmd
-%USERPROFILE%\AI-Journal\ai-journal.bat
-```
-
-You can also double-click `%USERPROFILE%\AI-Journal\Start AI Journal.bat`.
+Keep the small command window open while the journal is running. Close it when finished.
 
 ### Linux
 
-```bash
-chmod +x installers/install_ai_journal_v3.sh
-./installers/install_ai_journal_v3.sh
-ai-journal
-```
-
-## Installation
-
-The installers copy the CLI wrapper and Python scripts into `~/AI-Journal` on macOS/Linux or `%USERPROFILE%\AI-Journal` on Windows. Existing journal entries are preserved.
-
-For paid distribution, use the versioned ZIP created by the release build script instead of asking customers to download a source snapshot.
-
-## Features
-
-- Beginner menu for non-coders: create, append, search, open, and check setup.
-- Direct CLI commands for workshop facilitators and power users.
-- Plain Markdown journal entries stored locally on the user's computer.
-- Search by topic or tag through a small JSON index.
-- Optional OpenAI workflow through `OPENAI_API_KEY`.
-- AI review score that estimates structure and completeness, not factual correctness.
-- Cross-platform installers for macOS, Windows, and Linux.
-- Release packaging script for customer-ready ZIP and tar.gz artifacts.
-
-## Beginner Menu
-
-Run `ai-journal` with no arguments:
-
-```text
-1. Create a new journal entry
-2. Add to latest entry
-3. Ask AI and save answer
-4. Search my journal
-5. Open latest entry
-6. Run setup check
-7. Quit
-```
-
-The menu asks for topics, notes, and search terms interactively, so users do not need to know terminal quoting rules.
-
-## Commands
+Linux users can run:
 
 ```bash
-ai-journal new "My First Learning Session" learning
-ai-journal append latest "A useful insight I want to remember"
-ai-journal search "docker"
-ai-journal list --limit 10
-ai-journal open latest
-ai-journal setup
+python3 scripts/web_server.py
 ```
 
-You can also run commands without text arguments and let the app prompt you:
+Then open the local address shown in the terminal.
+
+## First five minutes
+
+1. Click **New entry** and write one thing you learned.
+2. Click **Ask the Guide** and ask a complete question, such as “What does grep do?”
+3. Leave **Use my journal as context** checked when you want the Guide to build on your notes.
+4. Click **Search my journal** to find earlier learning.
+5. Use **Manage AI** to choose Groq, OpenAI, Claude, or Gemini when available.
+
+The core journal stores notes as plain Markdown files on your computer. Optional AI questions are sent only to the provider you configure.
+
+## AI setup for beginners
+
+The web interface is the primary setup path:
+
+1. Open AI Journal.
+2. Click **Ask the Guide**.
+3. Click **Manage AI**.
+4. Choose a provider.
+5. Paste that provider's API key.
+6. Click the connection test or save button.
+7. Ask a simple test question.
+
+Never share an API key in email, screenshots, support tickets, journal entries, or GitHub.
+
+## What is included
+
+- Friendly local browser interface
+- Plain-file journal stored on your computer
+- New entries, quick additions, search, progress, and badges
+- Ask the Guide with optional journal context
+- Optional multiple AI providers
+- Cross-platform launchers and installers
+- Advanced command-line interface for facilitators and power users
+
+## Advanced: Terminal users
+
+Terminal use is optional. See `OPTIONAL_READING_command-line.md`.
+
+Common commands:
 
 ```bash
-ai-journal new
-ai-journal append latest
-ai-journal search
+uv run ai-journal doctor
+uv run ai-journal find "grep"
+uv run ai-journal backup
 ```
 
-## If your computer blocks the app the first time
+## Paid downloads and storefronts
 
-Because this app is downloaded from the internet and is not yet signed by Apple
-or Microsoft, your computer may warn you the first time you open the launcher.
-Nothing is wrong with the file - this is the normal warning for new downloads.
+Customers should receive the versioned release ZIP produced by `scripts/build_release.py`, not GitHub's automatic “Source code” archive.
 
-**macOS** ("Apple could not verify..."): click **Done** (not "Move to Trash"),
-then open **System Settings -> Privacy & Security**, scroll to the Security
-section, and click **Open Anyway** next to "Start AI Journal.command". Enter your
-password if asked, then click **Open**. After this, double-clicking works.
+Before uploading to Gumroad, Payhip, Lemon Squeezy, or another platform, follow:
 
-**Windows** ("Windows protected your PC"): click **More info**, then **Run
-anyway**.
-
-### Still stuck on macOS? Run it from the Terminal
-
-This always works, even when the launcher is blocked:
-
-1. Open the **Terminal** app (press Cmd+Space, type `Terminal`, press Return).
-2. Type `cd ` (with a trailing space) but do **not** press Return yet.
-3. Drag the `ai-coding-journal-starter` folder onto the Terminal window - its
-   path is filled in for you - then press Return.
-4. Run:
-
-   ```bash
-   python3 scripts/journal_cli.py menu
-   ```
-
-Power-user shortcut to clear the quarantine flag once, then double-click as
-normal:
-
-```bash
-xattr -dr com.apple.quarantine ai-coding-journal-starter
-```
-
-## Turn on AI answers
-
-The journal works fully without AI, and beginner questions like "what is an
-API?" are answered offline by the built-in **Starter Guide** - no key needed.
-To get AI answers to *any* question, switch on full AI once by pasting a
-provider key. Recommended order for learners:
-
-- **Groq** - free, no card needed. The best option if you don't have a card.
-- **Claude** or **ChatGPT** - paid; need credits on your provider account.
-- **Gemini** - has a free tier, but Google now requires linking a billing card
-  to your Google account before it will work (otherwise you get a quota error).
-
-Then install the optional package and set your key:
-
-```bash
-python3 -m pip install -r requirements.txt
-export OPENAI_API_KEY="your-api-key-here"
-ai-journal ask "Explain photosynthesis for a beginner"
-```
-
-For Windows Command Prompt:
-
-```cmd
-set OPENAI_API_KEY=your-api-key-here
-ai-journal ask "Explain photosynthesis for a beginner"
-```
-
-AI Journal does not include an API key. Users are responsible for their own API
-usage and costs. The offline Starter Guide always works for free.
-
-## Workshop Use
-
-This repository includes a workshop guide for facilitators: `docs/Workshop_Facilitator_Guide.md`.
-
-Recommended workshop setup:
-
-- Distribute the release ZIP before the session.
-- Ask attendees to install Python 3.9 or newer before the workshop.
-- Start with the beginner menu, then show direct commands.
-- Use the optional AI workflow only after the core journal flow works.
-
-## Paid Product Use
-
-Use `docs/Paid_Product_Checklist.md` before publishing to Payhip, Gumroad, Lemon Squeezy, or another digital storefront.
-
-Minimum paid-product package:
-
-- Versioned release ZIP.
-- `README.md`
+- `docs/Storefront_Distribution_Checklist.md`
+- `docs/Paid_Product_Checklist.md`
 - `docs/Quick_Start_v3.md`
-- `SUPPORT.md`
-- `PRIVACY.md`
-- `REFUND_POLICY.md`
-- `SECURITY.md`
-- `CHANGELOG.md`
-- SHA256 checksums from the release build.
 
-## Journal Storage
+The release builder now requires the web-first launchers and onboarding documents, preventing a customer package from being built without them.
 
-Entries are stored as Markdown in `~/AI-Journal`:
+## Support, privacy, and safety
 
-```text
-~/AI-Journal/
-  entries/
-    2026/
-      05/
-        20260523-my-topic.md
-  media/
-  scripts/
-  index.json
-```
+See `SUPPORT.md`, `PRIVACY.md`, `SECURITY.md`, and `REFUND_POLICY.md`.
 
-Because entries are plain Markdown, users can read, edit, back up, or export them with ordinary tools.
+AI answers may be wrong. Verify medical, legal, financial, security, and other high-stakes information with a qualified source.
 
-## Documentation
+## More information
 
-- `docs/Quick_Start_v3.md` - step-by-step beginner guide.
-- `docs/Workshop_Facilitator_Guide.md` - training workshop runbook.
-- `docs/Paid_Product_Checklist.md` - storefront and release checklist.
-- `docs/Release_Checklist.md` - engineering release gate.
-- `docs/Release_Notes_v3.0.1.md` - corrected release note template.
-- `OPTIONAL_READING_command-line.md` - command-line background.
-- `demo/usage-examples.md` - copy-paste examples.
+### Quick Start
 
-## Support
+Follow `docs/Quick_Start_v3.md` for the complete browser-first walkthrough.
 
-See `SUPPORT.md` for workshop and paid-customer support expectations.
+### Installation
 
-## Privacy
+Mac and Windows users should begin with the clearly labeled **START HERE** launcher. Terminal-based installation is optional and documented separately.
 
-See `PRIVACY.md`. The core journal stores data locally. Optional AI prompts are sent to OpenAI only when the user configures an API key and runs `ai-journal ask`.
+### Features
 
-## License
+The kit includes a local browser interface, plain-file journal storage, search, learning activity tracking, Ask the Guide, optional AI providers, backups, and advanced command-line tools.
 
-AI Learner's Journal Kit is licensed under the **PolyForm Noncommercial License 1.0.0**.
-It is free to use, modify, and share for **noncommercial** purposes, including
-personal study and use by educational institutions, nonprofits, public research
-organizations, and government bodies.
+### Workshop Use
 
-**Commercial use** — including selling the software, charging for it, or charging
-for a product or service built substantially on it — **requires a separate
-commercial license.** For commercial licensing, contact Lawrence Agbemabiese
-<agbe@udel.edu>. See `LICENSE` for full terms.
+Facilitators can use the journal in classes, cohorts, coding clubs, and guided learning workshops. See `docs/Workshop_Facilitator_Guide.md`.
+
+### Paid Product Use
+
+Commercial distribution must use the verified customer release ZIP. See `docs/Paid_Product_Checklist.md` and `docs/Storefront_Distribution_Checklist.md`.
+
+### Support
+
+See `SUPPORT.md` for troubleshooting and help.
+
+### Privacy
+
+See `PRIVACY.md` for data-handling information.
+
+### License
+
+See `LICENSE` for permitted use and distribution terms.

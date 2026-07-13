@@ -38,6 +38,15 @@ EXCLUDED_FILES = {
 
 REQUIRED_FILES = [
     "README.md",
+    "README.txt",
+    "START_HERE.md",
+    "START HERE - AI Journal.command",
+    "START HERE - AI Journal.bat",
+    "Start AI Journal (Web).command",
+    "Start AI Journal (Web).bat",
+    "docs/Storefront_Distribution_Checklist.md",
+    "docs/Storefront_Copy_Template.md",
+    "scripts/verify_customer_package.py",
     "LICENSE",
     "CHANGELOG.md",
     "SUPPORT.md",

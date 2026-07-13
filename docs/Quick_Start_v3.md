@@ -1,189 +1,107 @@
-# AI Learner's Journal Kit v3.0 Quick Start
+# Quick Start — Friendly Browser Version
 
-This guide is for people who want the easiest path first. You can use AI Journal from a double-click menu and do not need to memorize terminal commands.
+This guide is written for people who do not code and do not want to use Terminal commands.
 
-## 1. Install
+## The one thing to remember
 
-### macOS
-
-1. Open the downloaded folder.
-2. Open the `installers` folder.
-3. Right-click `Installer.command`.
-4. Choose `Open`.
-5. Choose `Open` again if macOS shows a security warning.
-6. Follow the prompts.
-
-After installation, double-click:
+Open the downloaded folder and double-click the file whose name begins with:
 
 ```text
-~/AI-Journal/Start AI Journal.command
+START HERE - AI Journal
 ```
 
-### Windows
+That opens the friendly journal in your browser.
 
-1. Open the downloaded folder.
-2. Open the `installers` folder.
-3. Double-click `Installer.bat`.
-4. Follow the prompts.
+## macOS
 
-After installation, double-click:
+1. Download the product ZIP.
+2. Double-click the ZIP to extract it.
+3. Open the new folder.
+4. Find **START HERE - AI Journal.command**.
+5. Double-click it.
+6. Leave the small Terminal window open.
+7. Use the journal in the browser window that opens.
+
+### If macOS blocks it
+
+1. Right-click **START HERE - AI Journal.command**.
+2. Choose **Open**.
+3. Choose **Open** again.
+
+If macOS still blocks it:
+
+1. Open **System Settings**.
+2. Choose **Privacy & Security**.
+3. Scroll to **Security**.
+4. Click **Open Anyway** beside the AI Journal launcher.
+5. Return to the folder and double-click the launcher again.
+
+## Windows
+
+1. Download the product ZIP.
+2. Right-click the ZIP and choose **Extract All**.
+3. Open the extracted folder.
+4. Double-click **START HERE - AI Journal.bat**.
+5. If Windows shows “Windows protected your PC,” click **More info**, then **Run anyway**.
+6. Leave the small command window open.
+7. Use the journal in the browser window that opens.
+
+## Your first learning session
+
+### Ask a question
+
+1. Click **Ask the Guide**.
+2. Type a complete question, such as:
 
 ```text
-%USERPROFILE%\AI-Journal\Start AI Journal.bat
+What does grep do?
 ```
 
-### Linux
+1. Leave **Use my journal as context** checked when useful.
+2. Click **Ask**.
+3. Expand **Show steps** for more detail.
 
-Open a terminal in the downloaded folder and run:
+The answer is saved to your journal automatically.
 
-```bash
-chmod +x installers/install_ai_journal_v3.sh
-./installers/install_ai_journal_v3.sh
-ai-journal
-```
+### Create a note
 
-## 2. Use The Menu
+1. Click **New entry**.
+2. Add a topic.
+3. Write what you learned.
+4. Save.
 
-When AI Journal starts, choose a number:
+### Find an old note
+
+1. Click **Search my journal**.
+2. Search with a word or phrase.
+3. Open the matching entry.
+
+## Turn on full AI
+
+1. Click **Ask the Guide**.
+2. Click **Manage AI**.
+3. Select a provider.
+4. Paste your own provider API key.
+5. Save or test the connection.
+
+Groq may offer a free option. Other providers may require paid API credits. ChatGPT subscriptions and OpenAI API billing are separate.
+
+Never send an API key to support or include it in a screenshot.
+
+## Where are my notes?
+
+Your notes remain as plain files on your computer, normally inside:
 
 ```text
-1. Create a new journal entry
-2. Add to latest entry
-3. Ask AI and save answer
-4. Search my journal
-5. Open latest entry
-6. Run setup check
-7. Quit
+~/AI-Journal
 ```
 
-The menu asks for the topic, notes, and search words. This avoids common terminal problems with quotes, spaces, question marks, and dollar signs.
+You can back up that folder with ordinary backup software.
 
-## 3. Create Your First Entry
+## Advanced options
 
-Choose `1. Create a new journal entry`.
+Terminal commands are optional. Curious users can read `OPTIONAL_READING_command-line.md`.
 
-Example topic:
+## Need help?
 
-```text
-What I learned about responsible AI today
-```
-
-Example tags:
-
-```text
-ai learning ethics
-```
-
-The entry is saved as a Markdown file inside `~/AI-Journal/entries`.
-
-## 4. Add Notes Later
-
-Choose `2. Add to latest entry`.
-
-Paste or type your note. Finish with a blank line.
-
-## 5. Search Your Journal
-
-Choose `4. Search my journal`.
-
-Search by topic or tag, such as:
-
-```text
-ethics
-docker
-lesson plan
-```
-
-## Optional: Ask AI From The Journal
-
-The journal works without an API key. To use the `ask` option with OpenAI:
-
-1. Get an API key from `https://platform.openai.com/api-keys`.
-2. Install the optional package:
-
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-1. Set the key for your terminal session:
-
-```bash
-export OPENAI_API_KEY="your-api-key-here"
-```
-
-Then choose `3. Ask AI and save answer` from the menu, or run:
-
-```bash
-ai-journal ask "What is a learning objective?"
-```
-
-AI Journal shows a review score for structure and completeness. It is not a factual accuracy score. For medical, legal, financial, security, or other high-stakes topics, verify with a trusted expert or source.
-
-## Optional: Direct Commands
-
-If you are comfortable in a terminal, these commands still work:
-
-```bash
-ai-journal new "My First Learning Session" learning
-ai-journal append latest "A useful insight"
-ai-journal search "learning"
-ai-journal list --limit 10
-ai-journal open latest
-ai-journal setup
-```
-
-You can also leave off the text and let AI Journal prompt you:
-
-```bash
-ai-journal new
-ai-journal append latest
-ai-journal search
-```
-
-## Troubleshooting
-
-### The command `ai-journal` is not found
-
-On macOS, double-click:
-
-```text
-~/AI-Journal/Start AI Journal.command
-```
-
-On Windows, double-click:
-
-```text
-%USERPROFILE%\AI-Journal\Start AI Journal.bat
-```
-
-You can also run the setup check from the installed menu.
-
-### AI does not answer
-
-Check that the optional package is installed and the API key is set:
-
-```bash
-python3 -m pip install -r requirements.txt
-echo $OPENAI_API_KEY
-```
-
-If no key is configured, AI Journal creates a manual entry instead of stopping.
-
-### I prefer plain terminal output
-
-Use:
-
-```bash
-ai-journal ask "What is Docker?" --plain
-```
-
-## Support And Privacy
-
-For workshop or paid-product distribution, include these files with the download:
-
-- `SUPPORT.md`
-- `PRIVACY.md`
-- `REFUND_POLICY.md`
-- `SECURITY.md`
-
-The core journal stores entries locally. The optional AI workflow sends prompts to OpenAI only when the user configures an API key and runs `ai-journal ask`.
+Read `SUPPORT.md`. When asking for help, share the error message but never share your API key.
