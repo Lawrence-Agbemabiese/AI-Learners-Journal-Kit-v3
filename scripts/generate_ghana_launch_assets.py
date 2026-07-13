@@ -26,7 +26,7 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "output" / "pdf"
 DIST = ROOT / "dist" / "ghana-launch"
-RELEASE_ZIP = ROOT / "dist" / "ai-learners-journal-kit-v3.0.1.zip"
+RELEASE_ZIP = ROOT / "dist" / "ai-learners-journal-kit-v3.2.0.zip"
 VERSION = "ghana-launch-v1"
 
 
@@ -518,7 +518,7 @@ def build_bundles(files: list[Path]) -> dict[str, str]:
         "Student Portfolio Pack",
         [
             "Thank you for getting the AI Learner's Journal Kit Student Portfolio Pack.",
-            "Begin with student-portfolio-pack.pdf, then unpack the included v3.0.1 release bundle if you want the CLI journal tools.",
+            "Begin with 02-student-portfolio-pack.pdf. For the friendly app, unpack 04-ai-learners-journal-kit-v3.2.0.zip and double-click the clearly labeled START HERE launcher.",
             "Support: info@agenticppa.com",
         ],
     )
@@ -567,7 +567,7 @@ def build_bundles(files: list[Path]) -> dict[str, str]:
             (free_pdf, "01-free-7-day-journal.pdf"),
             (student_pdf, "02-student-portfolio-pack.pdf"),
             (facilitator_pdf, "03-facilitator-notes-preview.pdf"),
-            (RELEASE_ZIP, "04-ai-learners-journal-kit-v3.0.1.zip"),
+            (RELEASE_ZIP, "04-ai-learners-journal-kit-v3.2.0.zip"),
             (ROOT / "PRIVACY.md", "policies/PRIVACY.md"),
             (ROOT / "REFUND_POLICY.md", "policies/REFUND_POLICY.md"),
             (ROOT / "SUPPORT.md", "policies/SUPPORT.md"),
