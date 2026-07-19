@@ -23,6 +23,10 @@ EXCLUDED_DIRS = {
     "__pycache__",
     "dist",
     "test-install",
+    # Internal working folders that must NEVER ship to customers.
+    ".claude",
+    "growth",
+    "node_modules",
 }
 
 EXCLUDED_SUFFIXES = {
@@ -63,6 +67,7 @@ REQUIRED_FILES = [
     "docs/Paid_Product_Checklist.md",
     "docs/Release_Checklist.md",
     "docs/Release_Notes_v3.0.1.md",
+    "docs/Release_Notes_v3.3.0.md",
 ]
 
 

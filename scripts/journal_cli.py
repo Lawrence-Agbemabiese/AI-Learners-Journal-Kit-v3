@@ -324,6 +324,13 @@ def cmd_web(args: argparse.Namespace) -> None:
     web_server.run(port=port, open_browser=not getattr(args, "no_browser", False))
 
 
+def cmd_import(args: argparse.Namespace) -> None:
+    """Import a Claude Code session as a draft journal entry."""
+    import session_import
+
+    session_import.run(take_latest=getattr(args, "latest", False))
+
+
 def cmd_menu(args: argparse.Namespace) -> None:
     """Show a simple menu for users who do not want to memorize commands."""
     while True:
@@ -333,9 +340,10 @@ def cmd_menu(args: argparse.Namespace) -> None:
         print("3. Ask AI and save answer")
         print("4. Search my journal")
         print("5. Open latest entry")
-        print("6. Run setup check")
-        print("7. Quit")
-        choice = input("Choose an option (1-7): ").strip()
+        print("6. Import a Claude Code session as a draft entry")
+        print("7. Run setup check")
+        print("8. Quit")
+        choice = input("Choose an option (1-8): ").strip()
 
         if choice == "1":
             cmd_new(argparse.Namespace(topic=None, tags=[]))
@@ -348,12 +356,14 @@ def cmd_menu(args: argparse.Namespace) -> None:
         elif choice == "5":
             cmd_open(argparse.Namespace(target="latest", print_path=False))
         elif choice == "6":
-            cmd_setup(argparse.Namespace())
+            cmd_import(argparse.Namespace(latest=False))
         elif choice == "7":
+            cmd_setup(argparse.Namespace())
+        elif choice == "8":
             print("Goodbye.")
             return
         else:
-            print("Please choose a number from 1 to 7.")
+            print("Please choose a number from 1 to 8.")
 
 
 def cmd_doctor(args: argparse.Namespace) -> None:
@@ -431,6 +441,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     menu_parser = subparsers.add_parser("menu", help="Open the beginner menu")
     menu_parser.set_defaults(func=cmd_menu)
+
+    import_parser = subparsers.add_parser(
+        "import", help="Import a Claude Code session as a draft entry"
+    )
+    import_parser.add_argument(
+        "--latest", action="store_true", help="Import the most recent session"
+    )
+    import_parser.set_defaults(func=cmd_import)
 
     setup_parser = subparsers.add_parser("setup", help="Run setup checks")
     setup_parser.set_defaults(func=cmd_setup)

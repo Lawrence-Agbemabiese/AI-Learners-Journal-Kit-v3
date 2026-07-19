@@ -88,6 +88,16 @@ Groq may offer a free option. Other providers may require paid API credits. Chat
 
 Never send an API key to support or include it in a screenshot.
 
+## Import a coding session (optional, for terminal users)
+
+If you code with Claude Code (Anthropic's terminal coding assistant), your sessions are already saved on your computer. Turn one into a draft journal entry:
+
+```bash
+ai-journal import
+```
+
+Pick a session from the list. Your real prompts are pre-filled into the entry; the Reflection section stays empty on purpose — that part is yours: what you changed after the AI's answers, what broke, and what the session proves you can do. Works offline, needs no API key, and never modifies your session files. If you don't use Claude Code, you can ignore this feature entirely.
+
 ## Where are my notes?
 
 Your notes remain as plain files on your computer, normally inside:

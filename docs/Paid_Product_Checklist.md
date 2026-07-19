@@ -30,6 +30,8 @@ Use this checklist before publishing a paid digital product.
 - Do not upload GitHub's automatic source archive to a storefront.
 - ZIP includes launchers, web UI, scripts, docs, support files, license, and policies.
 - ZIP excludes `.git`, virtual environments, caches, local journals, secrets, and test output.
+- ZIP excludes internal strategy and agent folders (`growth/`, `.claude/`).
+- Session import is described as Claude Code-only and optional; no other tools are advertised.
 - SHA256 checksums are generated.
 - `python3 scripts/verify_customer_package.py <release.zip>` passes.
 - Package was tested after downloading the exact storefront file.

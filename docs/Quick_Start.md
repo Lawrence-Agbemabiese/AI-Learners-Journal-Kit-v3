@@ -82,6 +82,17 @@ Use plain terminal output when needed:
 ai-journal ask "What is Docker?" --plain
 ```
 
+## Import A Coding Session (Optional)
+
+If you use Claude Code (Anthropic's terminal coding assistant), your sessions are already saved on your computer. Turn one into a draft journal entry:
+
+```bash
+ai-journal import           # pick from your recent sessions
+ai-journal import --latest  # import the most recent one
+```
+
+Your real prompts are pre-filled into the entry's AI Prompt Log. The Reflection section stays empty on purpose — that part is yours: what you changed after the AI's answers, what broke, and what the session proves you can do. Everything runs offline; the importer only reads your local session files and never modifies them.
+
 ## Data Location
 
 Entries are stored as Markdown files under:

@@ -107,9 +107,7 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
             var_path = entry_dir / var_filename
 
             if not var_path.exists():
-                status("Created new entry", var_path)
-                status("Topic", variation)
-                status("Tags", ", ".join(tags) if tags else "untagged")
+                # create_entry announces the new entry itself; no print here.
                 return create_entry(variation, content, tags, ai_metadata)
 
         return str(entry_path)
@@ -214,6 +212,9 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
 
     # Add AI metadata to entry record
     if ai_metadata:
+        if ai_metadata.get("session_id"):
+            # Lets importers recognize a session they have already imported.
+            entry_record["session_id"] = ai_metadata["session_id"]
         entry_record["ai_sources"] = [ai_metadata.get("source", "unknown")]
         entry_record["quality_rating"] = ai_metadata.get("quality_rating", 0)
         entry_record["confidence"] = ai_metadata.get("confidence", "medium")
