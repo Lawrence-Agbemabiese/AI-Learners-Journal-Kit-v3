@@ -51,4 +51,4 @@ ENV/
 
 # OS generated files
 *.pid
-.claude/
+.claude/settings.local.json
