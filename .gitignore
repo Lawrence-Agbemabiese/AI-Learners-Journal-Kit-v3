@@ -50,4 +50,5 @@ ENV/
 *.temp
 
 # OS generated files
-*.pid.claude/
+*.pid
+.claude/
