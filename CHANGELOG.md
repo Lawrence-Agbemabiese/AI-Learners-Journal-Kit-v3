@@ -2,6 +2,19 @@
 
 All notable product-facing changes should be documented here before a paid release is published.
 
+## v3.4.0 (2026-07-23)
+
+- Added safe entry deletion: soft delete moves the entry to `<journal>/trash/` (with a restore log) after confirmation, in both the CLI (`ai-journal delete`) and the web UI. Permanent removal is explicit via `ai-journal delete --purge` with a typed confirmation. JSON and SQLite search indexes stay consistent after either.
+- "Add to today" now really means today: appends go to today's entry (a new one is started automatically when the day has none), never to an older "latest" entry. The web dialog also lets you pick any recent entry; the CLI accepts `today`, `yesterday`, a date (`2026-07-23`), an id, or a topic.
+- Fixed same-day duplicate topics: entries are renamed predictably ("Topic (2)") instead of grammar-mangled variations, and a fully colliding save can no longer be silently discarded.
+- Fixed the web UI "Make it simpler" button stacking its prefix onto the question when clicked twice.
+- Fixed installers not copying the web interface: `ai-journal web` now works from an installed copy (installers ship `web/` + the web launcher, and the server falls back to the journal's own `web/` folder).
+- Fixed entry and index files being written without an explicit UTF-8 encoding, which could crash saves containing accents or emoji on Windows.
+- Fixed a nameless `YYYYMMDD-.md` file being created when a topic was empty or symbols-only (now "Untitled entry").
+- Fixed `ai-journal import` accepting out-of-range session numbers (e.g. `0` silently importing the last session).
+- Fixed `ai-journal backup` including the rebuildable search database's WAL sidecar files and temp files in backups.
+- The beginner menu no longer exits entirely when an action fails; it returns to the menu.
+
 ## v3.3.0 (2026-07-19)
 
 - Added `ai-journal import`: turn a local Claude Code session into a draft journal entry with your real prompts pre-filled and the Reflection left for you to write. Offline, read-only on session files; also available as beginner menu option 6.

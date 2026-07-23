@@ -26,7 +26,7 @@ def load_index():
     """Load the journal index."""
     index_path = get_journal_dir() / "index.json"
     try:
-        with open(index_path, "r") as f:
+        with open(index_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         # Create default index if it doesn't exist
@@ -55,8 +55,8 @@ def save_index(index_data):
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_data["stats"]["last_modified"] = datetime.now().isoformat() + "Z"
     tmp_path = index_path.with_suffix(".json.tmp")
-    with open(tmp_path, "w") as f:
-        json.dump(index_data, f, indent=2)
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(index_data, f, indent=2, ensure_ascii=False)
         f.write("\n")
     tmp_path.replace(index_path)
 
@@ -74,8 +74,12 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
     if tags is None:
         tags = []
 
+    # Never create nameless files: an empty or symbol-only topic still gets a
+    # readable title and a usable slug.
+    topic = (topic or "").strip() or "Untitled entry"
+
     now = datetime.now()
-    slug = create_slug(topic)
+    slug = create_slug(topic) or "entry"
 
     # Create entry filename with date and slug
     entry_filename = f"{now.strftime('%Y%m%d')}-{slug}.md"
@@ -86,31 +90,23 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
 
     entry_path = entry_dir / entry_filename
 
-    # Handle duplicate entries intelligently
+    # Same topic twice on the same day: rename predictably ("Topic (2)",
+    # "Topic (3)", ...) so nothing is ever silently dropped and every saved
+    # note keeps its own file.
     if entry_path.exists():
-        print(f"Entry already exists: {entry_path}")
-
-        # If it's a similar topic, suggest variations
-        variations = [
-            topic.replace("what is", "what is an").replace(
-                "what is an an", "what is an"
-            ),
-            topic.replace("what is an", "what is"),
-            topic + " detailed",
-            topic + " advanced",
-            topic.replace("?", " explained?") if "?" in topic else topic + " explained",
-        ]
-
-        for variation in variations:
-            var_slug = create_slug(variation)
-            var_filename = f"{now.strftime('%Y%m%d')}-{var_slug}.md"
-            var_path = entry_dir / var_filename
-
-            if not var_path.exists():
-                # create_entry announces the new entry itself; no print here.
-                return create_entry(variation, content, tags, ai_metadata)
-
-        return str(entry_path)
+        for n in range(2, 1000):
+            candidate_topic = f"{topic} ({n})"
+            candidate_slug = f"{slug}-{n}"
+            candidate_path = entry_dir / f"{now.strftime('%Y%m%d')}-{candidate_slug}.md"
+            if not candidate_path.exists():
+                status(
+                    "You already have an entry with this name today - saving as",
+                    candidate_topic,
+                )
+                topic, slug, entry_path = candidate_topic, candidate_slug, candidate_path
+                break
+        else:  # pragma: no cover - 999 same-name entries in one day
+            raise RuntimeError(f"Too many entries named '{topic}' today.")
 
     # Create enhanced entry content with AI metadata
     content_sections = []
@@ -187,8 +183,8 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
 
     entry_content = "\n".join(content_sections)
 
-    # Write the entry
-    with open(entry_path, "w") as f:
+    # Write the entry (always UTF-8, so accents/emoji survive on Windows too)
+    with open(entry_path, "w", encoding="utf-8") as f:
         f.write(entry_content)
 
     # Update index with enhanced metadata

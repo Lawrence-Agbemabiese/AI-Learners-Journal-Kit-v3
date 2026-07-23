@@ -17,7 +17,9 @@ WINDOWS
 IN THE BROWSER
 - Ask the Guide: ask complete learning questions
 - New entry: save what you learned
+- Add to today: drop a quick thought into today's entry, or any entry you pick
 - Search my journal: find previous notes
+- Delete: open an entry and move it to trash (nothing is destroyed)
 - Manage AI: choose Groq, OpenAI, Claude, or Gemini when available
 
 Your notes stay as plain files on your own computer.

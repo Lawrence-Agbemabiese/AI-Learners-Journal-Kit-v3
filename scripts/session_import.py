@@ -94,7 +94,11 @@ class ClaudeCodeReader:
         """Parse one session file into prompts, replies, and metadata."""
         prompts, replies = [], []
         summary = None
-        project = path.parent.name.replace("-", "/").lstrip("/")
+        # The folder name encodes the project path with dashes; keep only the
+        # last segment so a session with no cwd still gets a readable name.
+        project = path.parent.name.replace("-", "/").lstrip("/").split("/")[-1] or (
+            path.parent.name
+        )
         first_ts = last_ts = None
 
         with open(path, "r", encoding="utf-8", errors="replace") as fh:
@@ -278,7 +282,10 @@ def choose_session(reader: ClaudeCodeReader, take_latest: bool):
 
     pick = input(f"\nImport which session? (1-{len(parsed)}) [1]: ").strip() or "1"
     try:
-        return parsed[int(pick) - 1]
+        choice = int(pick)
+        if not 1 <= choice <= len(parsed):
+            raise ValueError(pick)
+        return parsed[choice - 1]
     except (ValueError, IndexError):
         print("Not a valid choice. Nothing was imported.")
         return None

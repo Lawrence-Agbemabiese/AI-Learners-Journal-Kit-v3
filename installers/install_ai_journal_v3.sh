@@ -27,9 +27,21 @@ cp "$BUNDLE_DIR/scripts"/*.py "$SCRIPTS_DIR/"
 chmod +x "$JOURNAL_DIR/ai-journal" "$SCRIPTS_DIR"/*.py
 ln -sf "$JOURNAL_DIR/ai-journal" "$BIN_DIR/ai-journal"
 
+# The web UI assets must travel with the scripts, or `ai-journal web`
+# has nothing to serve from an installed copy.
+if [ -d "$BUNDLE_DIR/web" ]; then
+    mkdir -p "$JOURNAL_DIR/web"
+    cp "$BUNDLE_DIR/web"/*.html "$JOURNAL_DIR/web/" 2>/dev/null || true
+fi
+
 if [ -f "$BUNDLE_DIR/Start AI Journal.command" ]; then
     cp "$BUNDLE_DIR/Start AI Journal.command" "$JOURNAL_DIR/"
     chmod +x "$JOURNAL_DIR/Start AI Journal.command"
+fi
+
+if [ -f "$BUNDLE_DIR/Start AI Journal (Web).command" ]; then
+    cp "$BUNDLE_DIR/Start AI Journal (Web).command" "$JOURNAL_DIR/"
+    chmod +x "$JOURNAL_DIR/Start AI Journal (Web).command"
 fi
 
 if [ ! -f "$JOURNAL_DIR/index.json" ]; then

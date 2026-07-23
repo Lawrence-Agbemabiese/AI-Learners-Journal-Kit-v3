@@ -26,6 +26,12 @@ EXCLUDED_DIRS = {
     # Internal working folders that must NEVER ship to customers.
     ".claude",
     "growth",
+    "marketing",
+    "promo",
+    "output",
+    # Personal journal backups and scratch folders in the repo root.
+    "journal-backups",
+    "_to_delete",
     "node_modules",
 }
 
@@ -68,6 +74,10 @@ REQUIRED_FILES = [
     "docs/Release_Checklist.md",
     "docs/Release_Notes_v3.0.1.md",
     "docs/Release_Notes_v3.3.0.md",
+    "docs/Release_Notes_v3.4.0.md",
+    "web/index.html",
+    "scripts/web_server.py",
+    "scripts/entry_delete.py",
 ]
 
 

@@ -71,6 +71,18 @@ if exist "%BUNDLE_DIR%\scripts\*.py" (
     echo [33m[WARNING][0m Python scripts not found in bundle
 )
 
+REM Copy the web UI assets (required for `ai-journal web` from an install)
+if exist "%BUNDLE_DIR%\web\index.html" (
+    if not exist "%JOURNAL_DIR%\web" mkdir "%JOURNAL_DIR%\web"
+    copy "%BUNDLE_DIR%\web\*.html" "%JOURNAL_DIR%\web\" >nul
+    echo [32m[SUCCESS][0m Copied browser interface files
+)
+
+REM Copy the web launcher next to the journal
+if exist "%BUNDLE_DIR%\Start AI Journal (Web).bat" (
+    copy "%BUNDLE_DIR%\Start AI Journal (Web).bat" "%JOURNAL_DIR%\" >nul
+)
+
 REM Initialize index.json if it doesn't exist
 if not exist "%JOURNAL_DIR%\index.json" (
     echo { > "%JOURNAL_DIR%\index.json"

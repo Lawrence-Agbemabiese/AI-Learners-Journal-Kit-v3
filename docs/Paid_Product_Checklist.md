@@ -46,6 +46,15 @@ Use this checklist before publishing a paid digital product.
 - Support, refund, privacy, and license information are visible.
 - Download instructions do not point customers to GitHub unless intended.
 
+## Core journal behaviors
+
+- Creating an entry with a duplicate same-day topic renames it predictably ("Topic (2)"); no note is ever silently dropped.
+- **Add to today** appends to today's entry, starts one when none exists, and can target any entry by picker (web) or by id/topic/date (CLI).
+- Deleting an entry is soft by default: the file moves to `<journal>/trash/`, the entry leaves the index and search, and `trash/trash-index.json` records how to restore it.
+- Permanent deletion exists only behind `ai-journal delete --purge` and its typed confirmation.
+- After any delete, `index.json` counts/tags stay consistent and search (JSON and SQLite) no longer returns the entry.
+- Entries with accents, emoji, or non-Latin scripts save and search correctly on macOS and Windows.
+
 ## Delivery test
 
 For every platform—Gumroad or any future store:
@@ -57,8 +66,10 @@ For every platform—Gumroad or any future store:
 5. Confirm the START HERE files are visible at the top level.
 6. Launch the browser UI.
 7. Create a test entry.
-8. Ask an offline or configured AI question.
-9. Confirm no developer files or private journal data are included.
+8. Use **Add to today** to append a note.
+9. Delete a test entry and confirm it appears in the `trash` folder.
+10. Ask an offline or configured AI question.
+11. Confirm no developer files or private journal data are included.
 
 ## Support readiness
 

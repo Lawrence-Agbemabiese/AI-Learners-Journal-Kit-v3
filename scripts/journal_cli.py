@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -29,7 +30,7 @@ def require_index() -> Path:
 
 def load_index() -> dict:
     """Load the journal index."""
-    return json.loads(require_index().read_text())
+    return json.loads(require_index().read_text(encoding="utf-8"))
 
 
 def prompt_required(label: str) -> str:
@@ -109,11 +110,29 @@ SECTION_CHOICES = {
 }
 
 
+def start_today_entry() -> Optional[dict]:
+    """Create today's first entry so a quick thought always has a home."""
+    topic = datetime.now().strftime("Notes - %B %d, %Y")
+    create_entry(topic, tags=["daily-notes"])
+    return resolve_entry("latest")
+
+
 def cmd_append(args: argparse.Namespace) -> None:
-    """Append content to an existing journal entry."""
-    require_index()
-    target = args.target or input("Entry to update [latest]: ").strip() or "latest"
+    """Append content to an existing journal entry.
+
+    Targets: "latest", "today" (creates today's entry when none exists yet),
+    "yesterday", a date like 2026-07-23, an entry id, or a topic.
+    """
+    target = args.target or input("Entry to update [today]: ").strip() or "today"
+    if target.lower() == "today":
+        # A brand-new journal can take its first note straight into "today":
+        # make sure the index exists instead of telling a beginner "no".
+        ensure_index()
+    else:
+        require_index()
     entry = resolve_entry(target)
+    if entry is None and target.lower() == "today":
+        entry = start_today_entry()
     if entry is None:
         print(f"No entry found matching '{target}'", file=sys.stderr)
         raise SystemExit(1)
@@ -277,6 +296,49 @@ def cmd_open(args: argparse.Namespace) -> None:
         open_path(entry_path)
 
 
+def cmd_delete(args: argparse.Namespace) -> None:
+    """Delete an entry: soft (to trash) by default, permanent with --purge."""
+    require_index()
+    target = args.target or input("Entry to delete (number, topic, or date): ").strip()
+    if not target:
+        print("Nothing was deleted.")
+        return
+    entry = resolve_entry(target)
+    if entry is None:
+        print(f"No entry found matching '{target}'", file=sys.stderr)
+        raise SystemExit(1)
+
+    action = "PERMANENTLY delete" if args.purge else "move to trash"
+    print(f'\nAbout to {action}: "{entry["topic"]}"  (created {entry["created"][:10]})')
+
+    if not getattr(args, "yes", False):
+        if args.purge:
+            prompt = "This cannot be undone. Type DELETE to confirm: "
+        else:
+            prompt = "Move this entry to trash? [y/N]: "
+        try:
+            answer = input(prompt).strip()
+        except (EOFError, KeyboardInterrupt):
+            answer = ""
+        confirmed = (
+            answer == "DELETE" if args.purge else answer.lower().startswith("y")
+        )
+        if not confirmed:
+            print("Nothing was deleted.")
+            return
+
+    from entry_delete import delete_entry
+
+    trashed = delete_entry(entry, purge=args.purge)
+    if args.purge:
+        print(f'Deleted permanently: "{entry["topic"]}"')
+    else:
+        print(f'Moved to trash: "{entry["topic"]}"')
+        if trashed:
+            print(f"Recover it anytime from: {trashed}")
+        print("(Restore by moving the file back and running: ai-journal reindex)")
+
+
 def cmd_ask(args: argparse.Namespace) -> None:
     """Run the AI integration command."""
     import ai_integration
@@ -336,34 +398,44 @@ def cmd_menu(args: argparse.Namespace) -> None:
     while True:
         print("\nAI Journal")
         print("1. Create a new journal entry")
-        print("2. Add to latest entry")
+        print("2. Add to today's entry")
         print("3. Ask AI and save answer")
         print("4. Search my journal")
         print("5. Open latest entry")
         print("6. Import a Claude Code session as a draft entry")
-        print("7. Run setup check")
-        print("8. Quit")
-        choice = input("Choose an option (1-8): ").strip()
+        print("7. Delete an entry (moves to trash)")
+        print("8. Run setup check")
+        print("9. Quit")
+        choice = input("Choose an option (1-9): ").strip()
 
-        if choice == "1":
-            cmd_new(argparse.Namespace(topic=None, tags=[]))
-        elif choice == "2":
-            cmd_append(argparse.Namespace(target="latest", content=None, section=None))
-        elif choice == "3":
-            cmd_ask(argparse.Namespace(question=None, options=[]))
-        elif choice == "4":
-            cmd_search(argparse.Namespace(query=None))
-        elif choice == "5":
-            cmd_open(argparse.Namespace(target="latest", print_path=False))
-        elif choice == "6":
-            cmd_import(argparse.Namespace(latest=False))
-        elif choice == "7":
-            cmd_setup(argparse.Namespace())
-        elif choice == "8":
-            print("Goodbye.")
-            return
-        else:
-            print("Please choose a number from 1 to 8.")
+        try:
+            if choice == "1":
+                cmd_new(argparse.Namespace(topic=None, tags=[]))
+            elif choice == "2":
+                cmd_append(
+                    argparse.Namespace(target="today", content=None, section=None)
+                )
+            elif choice == "3":
+                cmd_ask(argparse.Namespace(question=None, options=[]))
+            elif choice == "4":
+                cmd_search(argparse.Namespace(query=None))
+            elif choice == "5":
+                cmd_open(argparse.Namespace(target="latest", print_path=False))
+            elif choice == "6":
+                cmd_import(argparse.Namespace(latest=False))
+            elif choice == "7":
+                cmd_delete(argparse.Namespace(target=None, purge=False, yes=False))
+            elif choice == "8":
+                cmd_setup(argparse.Namespace())
+            elif choice == "9":
+                print("Goodbye.")
+                return
+            else:
+                print("Please choose a number from 1 to 9.")
+        except SystemExit:
+            # A failed action (e.g. "no entry found") should return to the
+            # menu, not quit the whole app on a beginner.
+            continue
 
 
 def cmd_doctor(args: argparse.Namespace) -> None:
@@ -408,11 +480,28 @@ def build_parser() -> argparse.ArgumentParser:
     new_parser.add_argument("tags", nargs="*")
     new_parser.set_defaults(func=cmd_new)
 
-    append_parser = subparsers.add_parser("append", help="Append to an entry")
+    append_parser = subparsers.add_parser(
+        "append",
+        help="Add to an entry: today, latest, a date, an id, or a topic",
+    )
     append_parser.add_argument("target", nargs="?")
     append_parser.add_argument("content", nargs="?")
     append_parser.add_argument("section", nargs="?", default=None)
     append_parser.set_defaults(func=cmd_append)
+
+    delete_parser = subparsers.add_parser(
+        "delete", help="Move an entry to trash (or --purge to delete forever)"
+    )
+    delete_parser.add_argument("target", nargs="?")
+    delete_parser.add_argument(
+        "--purge",
+        action="store_true",
+        help="Permanently delete instead of moving to trash",
+    )
+    delete_parser.add_argument(
+        "--yes", action="store_true", help="Skip the confirmation prompt"
+    )
+    delete_parser.set_defaults(func=cmd_delete)
 
     list_parser = subparsers.add_parser("list", help="List entries")
     list_parser.add_argument("--limit", type=int)

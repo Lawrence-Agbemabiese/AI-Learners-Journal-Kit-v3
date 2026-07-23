@@ -70,11 +70,23 @@ The answer is saved to your journal automatically.
 3. Write what you learned.
 4. Save.
 
+### Add a quick thought later
+
+1. Click **Add to today**.
+2. Your note goes into today's entry. No entry yet today? One is started for you.
+3. Want it somewhere else? Use the **Add to which entry?** menu to pick any recent entry.
+
 ### Find an old note
 
 1. Click **Search my journal**.
 2. Search with a word or phrase.
 3. Open the matching entry.
+
+### Delete a note
+
+1. Open the entry from the list.
+2. Click **Delete**, then confirm **Move to trash**.
+3. The note moves to the `trash` folder inside your journal — nothing is destroyed, and you can restore the file from there anytime.
 
 ## Turn on full AI
 

@@ -46,12 +46,32 @@ from ai_integration import (  # noqa: E402
     save_live_answer,
 )
 from auto_append import append_to_entry, find_entry, get_latest_entry  # noqa: E402
+from entry_delete import delete_entry  # noqa: E402
 from entry_saver import create_entry, get_journal_dir  # noqa: E402
 from entry_saver import load_index as ensure_index  # noqa: E402
-from journal_cli import search_entries  # noqa: E402
+from journal_cli import search_entries, start_today_entry  # noqa: E402
 
-# Front-end assets live in ../web relative to this file.
-WEB_DIR = (SCRIPTS_DIR.parent / "web").resolve()
+
+def _resolve_web_dir() -> Path:
+    """Find the front-end assets.
+
+    Usually ../web next to this file (repo / release bundle). Installed copies
+    live in <journal>/scripts, so also look inside the journal folder before
+    giving up - otherwise `ai-journal web` serves 404s after an install.
+    """
+    candidates = [
+        SCRIPTS_DIR.parent / "web",
+        Path(os.environ.get("AI_JOURNAL_DIR", Path.home() / "AI-Journal")) / "web",
+    ]
+    for candidate in candidates:
+        if (candidate / "index.html").is_file():
+            return candidate.resolve()
+    return candidates[0].resolve()
+
+
+# Front-end assets live in ../web relative to this file (with an installed-
+# copy fallback; see _resolve_web_dir).
+WEB_DIR = _resolve_web_dir()
 
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
@@ -373,14 +393,30 @@ def _append_entry(payload: dict) -> dict:
     content = (payload.get("content") or "").strip()
     if not content:
         raise ValueError("Some text is required to add a note.")
-    target = (payload.get("target") or "latest").strip() or "latest"
+    target = (payload.get("target") or "today").strip() or "today"
     section = payload.get("section") or "Reflection"
 
     entry = get_latest_entry() if target.lower() == "latest" else find_entry(target)
+    if entry is None and target.lower() == "today":
+        # No entry yet today: quietly start one so the note has a home.
+        entry = start_today_entry()
     if entry is None:
         raise LookupError(f"No entry found matching '{target}'.")
     append_to_entry(entry, content, section)
     return {"ok": True, "topic": entry.get("topic", "")}
+
+
+def _delete_entry(payload: dict) -> dict:
+    """Soft-delete an entry (move to trash). The web UI confirms first."""
+    try:
+        entry_id = int(payload.get("id"))
+    except (TypeError, ValueError):
+        raise ValueError("A valid entry id is required.")
+    entry = find_entry(str(entry_id))
+    if entry is None:
+        raise LookupError("Entry not found")
+    trashed = delete_entry(entry, purge=False)
+    return {"ok": True, "topic": entry.get("topic", ""), "trash_path": trashed}
 
 
 def _set_profile(payload: dict) -> dict:
@@ -571,6 +607,8 @@ class JournalHandler(BaseHTTPRequestHandler):
                 return self._send_json(_create_entry(payload))
             if parsed.path == "/api/append":
                 return self._send_json(_append_entry(payload))
+            if parsed.path == "/api/delete":
+                return self._send_json(_delete_entry(payload))
             if parsed.path == "/api/ask":
                 return self._send_json(_ask(payload))
             if parsed.path == "/api/profile":

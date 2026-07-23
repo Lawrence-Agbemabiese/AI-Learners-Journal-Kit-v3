@@ -52,3 +52,5 @@ ENV/
 # OS generated files
 *.pid
 .claude/settings.local.json
+journal-backups/
+_to_delete/

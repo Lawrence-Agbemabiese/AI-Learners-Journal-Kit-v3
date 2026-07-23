@@ -77,8 +77,8 @@
   .modal h3{margin:0 0 4px;font-size:19px;font-weight:800;}
   .modal p.h{margin:0 0 16px;color:var(--muted);font-weight:700;font-size:13.5px;}
   .modal label{display:block;font-weight:800;font-size:13px;margin:12px 0 5px;}
-  .modal input,.modal textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font:inherit;font-weight:700;outline:none;}
-  .modal input:focus,.modal textarea:focus{border-color:var(--teal);}
+  .modal input,.modal textarea,.modal select{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font:inherit;font-weight:700;outline:none;background:#fff;color:var(--ink);}
+  .modal input:focus,.modal textarea:focus,.modal select:focus{border-color:var(--teal);}
   .modal textarea{min-height:84px;resize:vertical;}
   .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex:0 0 auto;}
   .btn{border:0;border-radius:12px;padding:11px 18px;font:inherit;font-weight:800;cursor:pointer;}
@@ -358,8 +358,10 @@ function entryHtml(e){
   const more = open ? '<div class="readmore">Read full entry →</div>' : '';
   return '<div class="entry'+(open?' clickable':'')+'"'+attr+'><div class="et">'+esc(e.topic)+'</div><div class="em">'+esc(e.when||"")+'</div>'+body+'<div class="tags">'+tags+'</div>'+more+'</div>';
 }
+let currentEntry = null;   // entry shown in the open-entry modal
 async function openEntry(id){
   if(id==null) return;
+  currentEntry = null;
   show('<h3>Loading…</h3>');
   try{
     const e = await api("/api/entry?id="+encodeURIComponent(id));
@@ -368,7 +370,9 @@ async function openEntry(id){
       '<p class="h">'+esc(e.when||"")+'</p>'+
       '<div class="answer on" style="margin-top:0">'+mdToHtml(e.body||"")+'</div>'+
       (tags?'<div class="tags" style="margin-top:12px">'+tags+'</div>':'')+
-      '<div class="row"><button class="btn primary" onclick="closeModal()">Close</button></div>');
+      '<div class="row"><button class="btn ghost" id="m_delbtn" onclick="askDelete()">🗑 Delete</button>'+
+      '<button class="btn primary" onclick="closeModal()">Close</button></div>');
+    currentEntry = e;
   }catch(err){
     show('<h3>Could not open entry</h3><p class="h">'+esc(err.message)+'</p>'+
       '<div class="row"><button class="btn primary" onclick="closeModal()">Close</button></div>');
@@ -459,23 +463,53 @@ async function saveNew(){
   }catch(e){ toast("Could not save: "+e.message); document.getElementById("m_save").disabled=false; }
 }
 
-// ---- Add to latest --------------------------------------------------------
+// ---- Add to today (or any entry) ------------------------------------------
 function openNote(){
-  const latest = entriesCache[0];
-  if(!latest){ toast("Write a new entry first ✏️"); return; }
+  const todayEntry = entriesCache.find(e=>e.when==="Today");
+  const headline = todayEntry
+    ? 'Adding to today’s entry: “'+esc(todayEntry.topic)+'”'
+    : 'No entry yet today — your note will start one.';
+  const opts = ['<option value="today" selected>'+(todayEntry
+      ? 'Today’s entry — '+esc(todayEntry.topic)
+      : 'Start today’s entry')+'</option>']
+    .concat(entriesCache.slice(0,15).map(e=>
+      '<option value="'+e.id+'">'+esc(e.topic)+' — '+esc(e.when||"")+'</option>'));
   show(
-  '<h3>Add to today</h3><p class="h">Appending to: “'+esc(latest.topic)+'”</p>'+
+  '<h3>Add to today</h3><p class="h">'+headline+'</p>'+
+  '<label>Add to which entry?</label><select id="m_target">'+opts.join("")+'</select>'+
   '<label>Your note</label><textarea id="m_note" placeholder="One more thing I noticed…"></textarea>'+
   '<div class="row"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary" id="m_addbtn" onclick="saveNote()">Add note</button></div>');
   setTimeout(()=>document.getElementById("m_note").focus(),50);}
 async function saveNote(){
   const n=document.getElementById("m_note").value.trim();
   if(!n){toast("Type a note first 🙂");return;}
+  const sel=document.getElementById("m_target");
+  const target=(sel&&sel.value)||"today";
   document.getElementById("m_addbtn").disabled=true;
   try{
-    await apiPost("/api/append", {target:"latest", content:n});
-    closeModal(); await refresh(); toast("Added to your latest entry ✨");
+    const res = await apiPost("/api/append", {target:target, content:n});
+    closeModal(); await refresh(); toast("Added to “"+esc(res.topic||"your entry")+"” ✨");
   }catch(e){ toast("Could not add note: "+e.message); document.getElementById("m_addbtn").disabled=false; }
+}
+
+// ---- Delete entry (soft delete -> trash, with in-modal confirmation) ------
+function askDelete(){
+  if(!currentEntry) return;
+  const e = currentEntry;
+  show('<h3>Move to trash?</h3>'+
+    '<p class="h">“'+esc(e.topic||"This entry")+'” will move to your journal’s trash folder. '+
+    'Nothing is destroyed — you can restore it from there anytime.</p>'+
+    '<div class="row"><button class="btn ghost" onclick="openEntry('+e.id+')">Keep it</button>'+
+    '<button class="btn primary" id="m_confirmdel" style="background:var(--coral)" onclick="doDelete()">Move to trash</button></div>');
+}
+async function doDelete(){
+  if(!currentEntry) return;
+  const btn=document.getElementById("m_confirmdel"); if(btn) btn.disabled=true;
+  try{
+    const res = await apiPost("/api/delete", {id: currentEntry.id});
+    currentEntry = null;
+    closeModal(); await refresh(); toast("Moved to trash 🗑 — restore anytime from the trash folder");
+  }catch(e){ toast("Could not delete: "+e.message); if(btn) btn.disabled=false; }
 }
 
 // ---- Ask the Guide --------------------------------------------------------
@@ -499,9 +533,13 @@ function openAsk(){
 let lastAskQuestion="";
 async function doAsk(askText){
   const typed = document.getElementById("m_q").value.trim();
-  const q = (typeof askText==="string" && askText) ? askText : typed;
+  const fromButton = (typeof askText==="string" && askText);
+  const q = fromButton ? askText : typed;
   if(!q){toast("Type a question 🙂");return;}
-  lastAskQuestion = q;
+  // Remember the learner's ORIGINAL question only. (Previously the expanded
+  // "explain simply" question was remembered, so clicking the button twice
+  // stacked the prefix twice.)
+  if(!fromButton) lastAskQuestion = q;
   const box=document.getElementById("m_ans");box.classList.add("on");box.innerHTML="Thinking…";
   document.getElementById("m_askbtn").disabled=true;
   const uj=document.getElementById("m_usejournal");

@@ -196,6 +196,18 @@ def search(journal_dir: Path, query: str, limit: int = 20) -> list[SearchResult]
         conn.close()
 
 
+def remove_entry(journal_dir: Path, entry_id: int) -> None:
+    """Remove one entry from the search database after a delete."""
+    conn = connect(journal_dir)
+    try:
+        initialize(conn)
+        conn.execute("DELETE FROM entries WHERE id = ?", (entry_id,))
+        conn.execute("DELETE FROM entries_fts WHERE entry_id = ?", (entry_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def update_entry(journal_dir: Path, entry: dict) -> None:
     """Upsert one entry after create/append without rebuilding everything."""
     conn = connect(journal_dir)

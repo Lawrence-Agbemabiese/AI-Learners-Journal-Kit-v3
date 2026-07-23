@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import sys
 import zipfile
 from datetime import datetime
@@ -53,14 +54,36 @@ def doctor() -> int:
 
 def reindex() -> int:
     root = journal_dir()
-    count = rebuild(root)
+    try:
+        count = rebuild(root)
+    except sqlite3.OperationalError as exc:
+        print(f"Could not build the fast search database here ({exc}).")
+        print("This can happen on network drives or USB sticks.")
+        print("Basic search still works: ai-journal search \"<word>\"")
+        return 1
     print(f"Search index rebuilt: {count} entries")
     print(f"Database: {database_path(root)}")
     return 0
 
 
 def search_command(query: str, limit: int = 20) -> int:
-    results = search(journal_dir(), query, limit)
+    try:
+        results = search(journal_dir(), query, limit)
+    except sqlite3.OperationalError:
+        # SQLite can fail on network drives / USB sticks. Fall back to the
+        # plain full-text scan so the learner still gets an answer.
+        from journal_cli import format_entry, search_entries
+
+        matches = search_entries(query)[: max(1, limit)]
+        if not matches:
+            print(f'No journal entries matched "{query}".')
+            return 0
+        print(f'{len(matches)} result(s) for "{query}" (basic search)\n')
+        for entry, snippet in matches:
+            print(format_entry(entry))
+            if snippet:
+                print(f"      > {snippet}")
+        return 0
     if not results:
         print(f'No journal entries matched "{query}".')
         return 0
@@ -86,9 +109,15 @@ def backup(destination: str | None = None) -> int:
         else Path.home() / f"AI-Journal-backup-{stamp}.zip"
     )
     target.parent.mkdir(parents=True, exist_ok=True)
+    db_name = database_path(root).name
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in root.rglob("*"):
-            if path.is_file() and path != database_path(root):
-                archive.write(path, path.relative_to(root.parent))
+            # Skip the rebuildable search database (and its -wal/-shm
+            # sidecars) plus interrupted temp writes.
+            if not path.is_file():
+                continue
+            if path.name.startswith(db_name) or path.name.endswith(".tmp"):
+                continue
+            archive.write(path, path.relative_to(root.parent))
     print(f"Backup created: {target}")
     return 0

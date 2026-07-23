@@ -25,7 +25,7 @@ def load_index():
     """Load the journal index."""
     index_path = get_journal_dir() / "index.json"
     try:
-        with open(index_path, "r") as f:
+        with open(index_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         status("No journal index found. Create your first entry with 'ai-journal new'")
@@ -37,14 +37,46 @@ def save_index(index_data):
     index_path = get_journal_dir() / "index.json"
     index_data["stats"]["last_modified"] = datetime.now().isoformat() + "Z"
     tmp_path = index_path.with_suffix(".json.tmp")
-    with open(tmp_path, "w") as f:
-        json.dump(index_data, f, indent=2)
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(index_data, f, indent=2, ensure_ascii=False)
         f.write("\n")
     tmp_path.replace(index_path)
 
 
+def _parse_date_term(term):
+    """Return a YYYY-MM-DD string when the term names a day, else None.
+
+    Accepts "today", "yesterday", "2026-07-23", "2026/07/23", "20260723".
+    """
+    term = (term or "").strip().lower()
+    if term == "today":
+        return datetime.now().strftime("%Y-%m-%d")
+    if term == "yesterday":
+        from datetime import timedelta
+
+        return (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%Y%m%d"):
+        try:
+            return datetime.strptime(term, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return None
+
+
+def find_entry_for_day(day):
+    """Most recent entry created on the given YYYY-MM-DD day, or None."""
+    entries = [
+        entry
+        for entry in load_index()["entries"]
+        if (entry.get("created") or "")[:10] == day
+    ]
+    if not entries:
+        return None
+    return max(entries, key=lambda e: e["created"])
+
+
 def find_entry(search_term):
-    """Find entry by ID, topic, or slug."""
+    """Find entry by ID, day ("today", a date), topic, or slug."""
     index_data = load_index()
 
     # Try to find by ID first
@@ -55,6 +87,11 @@ def find_entry(search_term):
                 return entry
     except ValueError:
         pass
+
+    # Day words and dates: "today", "yesterday", "2026-07-23", "20260723"
+    day = _parse_date_term(search_term)
+    if day is not None:
+        return find_entry_for_day(day)
 
     # Try to find by exact topic match
     for entry in index_data["entries"]:
@@ -204,8 +241,8 @@ def main():
         status("No content provided. Provide content as argument or via stdin.")
         sys.exit(1)
 
-    # Optional section parameter
-    section = sys.argv[3] if len(sys.argv) > 3 else "Q&A"
+    # Optional section parameter (default matches the CLI and web UI)
+    section = sys.argv[3] if len(sys.argv) > 3 else "Reflection"
 
     # Find entry
     if search_term.lower() == "latest":
