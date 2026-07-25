@@ -2,6 +2,10 @@
 
 All notable product-facing changes should be documented here before a paid release is published.
 
+## v3.4.2 (2026-07-25)
+
+- Added "The daily ritual: Learn → Capture → Prove" card to the web UI home screen, with links to recommended practice platforms (Coddy.tech, Codédex) and a one-line description of each step. Links are plain recommendations for now; the card carries an inline placeholder for partner links + disclosure text once an affiliate arrangement is approved.
+
 ## v3.4.1 (2026-07-24)
 
 - Added an **Edit** button to the web UI's entry view: open any entry, click Edit, change the full text, Save. The search index and word counts update immediately. (Terminal users can keep editing the file directly — `ai-journal open <entry>` shows its path.)

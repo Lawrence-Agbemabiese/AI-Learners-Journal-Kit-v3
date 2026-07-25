@@ -66,6 +66,15 @@
   .tags{display:flex;gap:6px;flex-wrap:wrap;}
   .tag{background:#F2EEE7;color:#6a655c;font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;}
   .empty{color:var(--muted);font-weight:700;font-size:14px;padding:8px 2px;}
+  .ritual{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .rstep{display:flex;gap:10px;align-items:flex-start;}
+  .rstep .ric{width:38px;height:38px;border-radius:11px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--bg);}
+  .rstep .t{font-size:14px;font-weight:800;margin:0;}
+  .rstep .d{font-size:12.5px;color:var(--muted);font-weight:700;margin:3px 0 0;line-height:1.45;}
+  .rstep .d a{color:var(--teal);font-weight:800;text-decoration:none;}
+  .rstep .d a:hover{text-decoration:underline;}
+  .rarrow{display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:800;}
+  @media(max-width:680px){.ritual{grid-template-columns:1fr}}
   .badges{display:flex;gap:10px;flex-wrap:wrap;}
   .badge{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);
     border-radius:999px;padding:7px 13px;font-weight:800;font-size:13px;box-shadow:var(--shadow);}
@@ -185,6 +194,37 @@
       <div class="ic" style="background:#EDEAF7">🔍</div>
       <div><p class="t">Search my journal</p><p class="d">Find anything you wrote</p></div>
     </button>
+  </div>
+
+  <div class="card" id="ritualCard">
+    <h2>The daily ritual: Learn → Capture → Prove</h2>
+    <div class="ritual">
+      <div class="rstep"><span class="ric">🏋️</span>
+        <div><p class="t">1 · Learn</p>
+        <p class="d">Do one short lesson on a practice site — try
+          <a href="https://coddy.tech" target="_blank" rel="noopener">Coddy.tech</a> or
+          <a href="https://www.codedex.io" target="_blank" rel="noopener">Codédex</a>.
+          Gamified, beginner-friendly, a little addictive.</p></div>
+      </div>
+      <div class="rstep"><span class="ric">✏️</span>
+        <div><p class="t">2 · Capture</p>
+        <p class="d">Come straight back here. One honest line via <b>New entry</b> or
+          <b>Add to today</b> — especially the thing that confused you.</p></div>
+      </div>
+      <div class="rstep"><span class="ric">🏆</span>
+        <div><p class="t">3 · Prove</p>
+        <p class="d">Your journal becomes the evidence: searchable notes today,
+          a portfolio an employer can actually read tomorrow.</p></div>
+      </div>
+    </div>
+    <!-- PLACEHOLDER (do not remove): when a partner/affiliate arrangement is
+         approved, (1) swap the two practice-platform URLs above for the
+         partner links, and (2) add a plain-language disclosure line right
+         here in the card, e.g.:
+         <p class="d" style="margin-top:10px">Heads up: the practice-site
+         links are affiliate links — if you ever choose a paid plan, a small
+         commission supports this project. The free tiers are all the ritual
+         needs.</p> -->
   </div>
 
   <div class="card">
