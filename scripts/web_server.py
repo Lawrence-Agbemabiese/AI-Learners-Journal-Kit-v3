@@ -45,7 +45,12 @@ from ai_integration import (  # noqa: E402
     save_config,
     save_live_answer,
 )
-from auto_append import append_to_entry, find_entry, get_latest_entry  # noqa: E402
+from auto_append import (  # noqa: E402
+    append_to_entry,
+    find_entry,
+    get_latest_entry,
+    update_entry_content,
+)
 from entry_delete import delete_entry  # noqa: E402
 from entry_saver import create_entry, get_journal_dir  # noqa: E402
 from entry_saver import load_index as ensure_index  # noqa: E402
@@ -406,6 +411,22 @@ def _append_entry(payload: dict) -> dict:
     return {"ok": True, "topic": entry.get("topic", "")}
 
 
+def _update_entry(payload: dict) -> dict:
+    """Replace an entry's full Markdown body (the web UI's Edit button)."""
+    try:
+        entry_id = int(payload.get("id"))
+    except (TypeError, ValueError):
+        raise ValueError("A valid entry id is required.")
+    body = payload.get("body")
+    if not isinstance(body, str) or not body.strip():
+        raise ValueError("The entry text cannot be empty. Use Delete instead.")
+    entry = find_entry(str(entry_id))
+    if entry is None:
+        raise LookupError("Entry not found")
+    update_entry_content(entry, body)
+    return {"ok": True, "topic": entry.get("topic", "")}
+
+
 def _delete_entry(payload: dict) -> dict:
     """Soft-delete an entry (move to trash). The web UI confirms first."""
     try:
@@ -609,6 +630,8 @@ class JournalHandler(BaseHTTPRequestHandler):
                 return self._send_json(_append_entry(payload))
             if parsed.path == "/api/delete":
                 return self._send_json(_delete_entry(payload))
+            if parsed.path == "/api/entry/update":
+                return self._send_json(_update_entry(payload))
             if parsed.path == "/api/ask":
                 return self._send_json(_ask(payload))
             if parsed.path == "/api/profile":

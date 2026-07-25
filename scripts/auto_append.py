@@ -217,6 +217,29 @@ def append_to_entry(entry, content, section="Reflection"):
     status("Time", timestamp)
 
 
+def update_entry_content(entry, new_content):
+    """Replace the full Markdown body of an entry (used by the web Edit).
+
+    Raises LookupError when the entry file is missing, so callers (the web
+    server) can turn it into a friendly error instead of exiting.
+    """
+    journal_dir = get_journal_dir()
+    entry_path = journal_dir / entry["filename"]
+    if not entry_path.exists():
+        raise LookupError(f"Entry file not found: {entry_path}")
+
+    with open(entry_path, "w", encoding="utf-8") as f:
+        f.write(new_content)
+
+    # Keep the index in step (word count + freshness for search rebuild).
+    index_data = load_index()
+    for i, indexed_entry in enumerate(index_data["entries"]):
+        if indexed_entry["id"] == entry["id"]:
+            index_data["entries"][i]["word_count"] = len(new_content.split())
+            break
+    save_index(index_data)
+
+
 def main():
     """Main entry point."""
     if len(sys.argv) < 2:

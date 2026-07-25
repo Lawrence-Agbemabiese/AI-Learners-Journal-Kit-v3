@@ -82,6 +82,12 @@ The answer is saved to your journal automatically.
 2. Search with a word or phrase.
 3. Open the matching entry.
 
+### Edit a note
+
+1. Open the entry from the list.
+2. Click **Edit** — the full text of your note appears in an editor.
+3. Fix, trim, or polish anything, then click **Save changes**.
+
 ### Delete a note
 
 1. Open the entry from the list.

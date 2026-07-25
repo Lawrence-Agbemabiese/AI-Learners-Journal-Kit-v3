@@ -270,6 +270,69 @@ def test_web_delete_endpoint_soft_deletes(server, tmp_path):
     assert list(trash.glob("*web-delete-me.md"))
 
 
+def test_web_edit_updates_body_index_and_search(server, tmp_path):
+    post(server, "/api/entries", {"topic": "Editable", "body": "Original fragment."})
+    _, listing = get(server, "/api/entries")
+    entry_id = listing["entries"][0]["id"]
+
+    status, body = post(
+        server,
+        "/api/entry/update",
+        {"id": entry_id, "body": "# Editable\n\nPolished thought, fragment removed."},
+    )
+    assert status == 200 and body["ok"] is True
+
+    # File content replaced
+    _, detail = get(server, "/api/entry?id=%d" % entry_id)
+    assert "Polished thought" in detail["body"]
+    assert "Original fragment" not in detail["body"]
+
+    # Search sees the new text, not the old
+    _, res = get(server, "/api/search?q=polished")
+    assert any(e["id"] == entry_id for e in res["entries"])
+    _, res = get(server, "/api/search?q=original")
+    assert not any(e["id"] == entry_id for e in res["entries"])
+
+    # Index word count refreshed
+    index = json.loads(
+        (tmp_path / "AI-Journal" / "index.json").read_text(encoding="utf-8")
+    )
+    entry = [e for e in index["entries"] if e["id"] == entry_id][0]
+    assert entry["word_count"] == len(
+        "# Editable\n\nPolished thought, fragment removed.".split()
+    )
+
+
+def test_web_edit_rejects_empty_body(server):
+    post(server, "/api/entries", {"topic": "Keep content"})
+    _, listing = get(server, "/api/entries")
+    entry_id = listing["entries"][0]["id"]
+    status, body = post(server, "/api/entry/update", {"id": entry_id, "body": "   "})
+    assert status == 400
+    assert "empty" in body["error"].lower()
+
+
+def test_web_edit_unknown_id_is_404(server):
+    status, body = post(
+        server, "/api/entry/update", {"id": 999999, "body": "anything"}
+    )
+    assert status == 404
+
+
+def test_web_edit_preserves_unicode(server):
+    post(server, "/api/entries", {"topic": "Unicode edit"})
+    _, listing = get(server, "/api/entries")
+    entry_id = listing["entries"][0]["id"]
+    status, _ = post(
+        server,
+        "/api/entry/update",
+        {"id": entry_id, "body": "# Unicode edit\n\nCafé ✨ 日本語 works."},
+    )
+    assert status == 200
+    _, detail = get(server, "/api/entry?id=%d" % entry_id)
+    assert "Café ✨ 日本語" in detail["body"]
+
+
 def test_web_delete_unknown_id_is_404(server):
     status, body = post(server, "/api/delete", {"id": 424242})
     assert status == 404

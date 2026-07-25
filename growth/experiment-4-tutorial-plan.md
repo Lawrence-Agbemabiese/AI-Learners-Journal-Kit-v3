@@ -40,6 +40,10 @@ Persuasion frame: Coddy gives you a certificate that says you finished. Your jou
 
 ### 0:15–0:45 — Setup sprint (timeboxed hard)
 - Verify AILJK runs (`ai-journal` — first entry screen). Helpers: anyone already working pairs with a neighbor who's stuck.
+- **Screen setup ritual (2 min, everyone together):** Coddy and the journal side by side, so capture never means hunting for a window. Demo it on your own screen first, then have everyone do it:
+  - **Mac:** hover the green button at the top-left of the Coddy browser window → *Move Window to Left of Screen* (or drag it to the left edge), journal window to the right. Alternative for small screens: two full-screen windows + **Cmd+Tab** to flip between them.
+  - **Windows:** click the Coddy window, press **Win+←**, click the journal window, press **Win+→**. Alternative: **Alt+Tab** to flip.
+  - Frame it: "Left side is the gym, right side is the training log. From now on, when something clicks — glance right, one line, back to the gym." This is the physical habit the whole loop depends on.
 - Coddy account creation — **share the affiliate link here, with the disclosure script**: "Full transparency: this is an affiliate link — if any of you ever chose their paid plan, a small commission supports this free tutorial series. The free tier is all we use today, and it's genuinely what I recommend you start with."
 - Everyone completes Coddy onboarding and lands on the Terminal course (coddy.tech/landing/terminal).
 

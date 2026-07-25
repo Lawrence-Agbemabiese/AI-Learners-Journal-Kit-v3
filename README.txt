@@ -19,6 +19,7 @@ IN THE BROWSER
 - New entry: save what you learned
 - Add to today: drop a quick thought into today's entry, or any entry you pick
 - Search my journal: find previous notes
+- Edit: open an entry and fix or polish its text
 - Delete: open an entry and move it to trash (nothing is destroyed)
 - Manage AI: choose Groq, OpenAI, Claude, or Gemini when available
 

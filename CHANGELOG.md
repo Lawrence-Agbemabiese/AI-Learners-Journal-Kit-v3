@@ -2,6 +2,10 @@
 
 All notable product-facing changes should be documented here before a paid release is published.
 
+## v3.4.1 (2026-07-24)
+
+- Added an **Edit** button to the web UI's entry view: open any entry, click Edit, change the full text, Save. The search index and word counts update immediately. (Terminal users can keep editing the file directly — `ai-journal open <entry>` shows its path.)
+
 ## v3.4.0 (2026-07-23)
 
 - Added safe entry deletion: soft delete moves the entry to `<journal>/trash/` (with a restore log) after confirmation, in both the CLI (`ai-journal delete`) and the web UI. Permanent removal is explicit via `ai-journal delete --purge` with a typed confirmation. JSON and SQLite search indexes stay consistent after either.

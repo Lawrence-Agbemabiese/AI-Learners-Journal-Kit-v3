@@ -70,6 +70,7 @@ Never share an API key in email, screenshots, support tickets, journal entries, 
 - Friendly local browser interface
 - Plain-file journal stored on your computer
 - New entries, quick additions to today or any entry, search, progress, and badges
+- Edit any entry in place from the browser
 - Safe entry deletion (trash first, permanent only on request)
 - Ask the Guide with optional journal context
 - Optional multiple AI providers

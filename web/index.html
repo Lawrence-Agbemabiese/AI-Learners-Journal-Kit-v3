@@ -370,7 +370,8 @@ async function openEntry(id){
       '<p class="h">'+esc(e.when||"")+'</p>'+
       '<div class="answer on" style="margin-top:0">'+mdToHtml(e.body||"")+'</div>'+
       (tags?'<div class="tags" style="margin-top:12px">'+tags+'</div>':'')+
-      '<div class="row"><button class="btn ghost" id="m_delbtn" onclick="askDelete()">🗑 Delete</button>'+
+      '<div class="row"><button class="btn ghost" id="m_editbtn" onclick="editEntry()">✏️ Edit</button>'+
+      '<button class="btn ghost" id="m_delbtn" onclick="askDelete()">🗑 Delete</button>'+
       '<button class="btn primary" onclick="closeModal()">Close</button></div>');
     currentEntry = e;
   }catch(err){
@@ -490,6 +491,32 @@ async function saveNote(){
     const res = await apiPost("/api/append", {target:target, content:n});
     closeModal(); await refresh(); toast("Added to “"+esc(res.topic||"your entry")+"” ✨");
   }catch(e){ toast("Could not add note: "+e.message); document.getElementById("m_addbtn").disabled=false; }
+}
+
+// ---- Edit entry (full raw-text editor in the modal) -----------------------
+function editEntry(){
+  if(!currentEntry) return;
+  const e = currentEntry;
+  show('<h3>Edit entry</h3>'+
+    '<p class="h">“'+esc(e.topic||"Entry")+'” — this is the full text of your note. Change anything, then Save.</p>'+
+    '<textarea id="m_editbody" style="min-height:min(50dvh,380px);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.5"></textarea>'+
+    '<div class="row"><button class="btn ghost" onclick="openEntry('+e.id+')">Cancel</button>'+
+    '<button class="btn primary" id="m_saveedit" onclick="saveEdit()">Save changes</button></div>');
+  const ta = document.getElementById("m_editbody");
+  ta.value = e.body || "";           // set via .value so no escaping worries
+  setTimeout(()=>ta.focus(),50);
+}
+async function saveEdit(){
+  if(!currentEntry) return;
+  const body = document.getElementById("m_editbody").value;
+  if(!body.trim()){ toast("The entry can't be empty — use Delete instead 🙂"); return; }
+  const btn = document.getElementById("m_saveedit"); btn.disabled = true;
+  try{
+    await apiPost("/api/entry/update", {id: currentEntry.id, body: body});
+    toast("Changes saved ✏️");
+    await refresh();
+    openEntry(currentEntry.id);      // back to the reading view, updated
+  }catch(e){ toast("Could not save: "+e.message); btn.disabled = false; }
 }
 
 // ---- Delete entry (soft delete -> trash, with in-modal confirmation) ------
