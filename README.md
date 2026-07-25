@@ -72,7 +72,7 @@ Never share an API key in email, screenshots, support tickets, journal entries, 
 - New entries, quick additions to today or any entry, search, progress, and badges
 - Edit any entry in place from the browser
 - Safe entry deletion (trash first, permanent only on request)
-- A built-in Learn → Capture → Prove ritual guide with recommended practice platforms
+- A built-in Learn → Capture → Prove workflow guide with recommended practice platforms
 - Ask the Guide with optional journal context
 - Optional multiple AI providers
 - Cross-platform launchers and installers

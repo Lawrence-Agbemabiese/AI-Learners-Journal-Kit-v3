@@ -38,7 +38,7 @@ Ask him the tutorial-plan question, adapted: *"When a student finishes your cour
 2. Click **New entry** → topic: "Binary search trees" (or something from *his* department's curriculum — ask what he teaches and use that). Write two honest lines including one *"what confused me"* line.
 3. Point at the streak/heatmap tiles for five seconds only: *"Habit mechanics, same psychology as Duolingo — but the artifact it produces is a study record, not a score."*
 
-### 0:08–0:12 — The daily ritual
+### 0:08–0:12 — The daily workflow
 
 1. Click **Add to today** → add a quick thought. Narrate the design: *"Zero friction matters. A stray insight after class goes into today's entry — students never file, never organize."* You've now lived this flow yourself in real practice sessions — say so; first-person beats feature-list.
 2. Click **Ask the Guide** → ask "What is an API?" → answer appears **offline**. Say the important sentence: *"No API key, no internet, no cost — beginner questions are answered locally. With a free key, it becomes a full AI tutor that builds on the student's own notes — and every answer is saved and labeled with its source."*

@@ -16,7 +16,7 @@ Persuasion frame: Coddy gives you a certificate that says you finished. Your jou
 ## Design principles
 
 - Show, never pitch. Every claim about AILJK is demonstrated live within minutes of being made.
-- Two full learn→capture cycles so the ritual feels like a habit by hour 2, not a demo.
+- Two full learn→capture cycles so the workflow feels like a habit by hour 2, not a demo.
 - Every participant leaves with real artifacts on their own machine: 2+ journal entries, a git-versioned journal repo, a 7-day plan.
 - Product truth: AILJK is local-first, offline, plain Markdown, JSON-index search, optional BYO-key AI. Python 3.9+ required. No cloud, no sync. Never promise otherwise.
 - Affiliate honesty: the Coddy link is disclosed in plain language at the moment it's shared (see script §Close). Trust is the asset; the commission is incidental to a genuine recommendation.
@@ -40,7 +40,7 @@ Persuasion frame: Coddy gives you a certificate that says you finished. Your jou
 
 ### 0:15–0:45 — Setup sprint (timeboxed hard)
 - Verify AILJK runs (`ai-journal` — first entry screen). Helpers: anyone already working pairs with a neighbor who's stuck.
-- **Screen setup ritual (2 min, everyone together):** Coddy and the journal side by side, so capture never means hunting for a window. Demo it on your own screen first, then have everyone do it:
+- **Screen setup workflow (2 min, everyone together):** Coddy and the journal side by side, so capture never means hunting for a window. Demo it on your own screen first, then have everyone do it:
   - **Mac:** hover the green button at the top-left of the Coddy browser window → *Move Window to Left of Screen* (or drag it to the left edge), journal window to the right. Alternative for small screens: two full-screen windows + **Cmd+Tab** to flip between them.
   - **Windows:** click the Coddy window, press **Win+←**, click the journal window, press **Win+→**. Alternative: **Alt+Tab** to flip.
   - Frame it: "Left side is the gym, right side is the training log. From now on, when something clicks — glance right, one line, back to the gym." This is the physical habit the whole loop depends on.
@@ -56,7 +56,7 @@ Persuasion frame: Coddy gives you a certificate that says you finished. Your jou
 
 ### 1:30–2:05 — Loop 2: Python + the search payoff
 - 20 min: Coddy Python fundamentals (variables/first program).
-- 10 min: second AILJK entry, now with minimal hand-holding — the ritual should already feel familiar.
+- 10 min: second AILJK entry, now with minimal hand-holding — the workflow should already feel familiar.
 - 5 min: **the search demo** — search their own two entries from the CLI. "Forty minutes ago is already findable. Imagine week 9 of a course, searching week 2. No account. No internet. Yours."
 
 ### 2:05–2:35 — The git bridge (the aha moment)

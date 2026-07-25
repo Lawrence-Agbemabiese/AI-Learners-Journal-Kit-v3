@@ -36,7 +36,7 @@ Note: L1 and L2 can share one `dist/` rebuild pass — the Student ZIP must be r
 ### Free — Ghana 7-Day AI Coding Journal
 - **Who:** Ghanaian learners in coding/AI/data/cyber tracks — OMCP Phase-Two trainees first (12,623 completions by 30 May 2026; 400k 2026 target — demand-brief §1).
 - **One problem:** you finish a week of training with nothing you can show or search — "a command or a syntax has just vanished from your head" (demand-brief §3.1).
-- **Why it beats ChatGPT + a notebook:** it's a *structured* 7-day capture ritual (what you learned / built / prompted / what confused you / what proof to save) that works offline on paper or as a local app — no account, no data cost, and the record survives when a program's portal goes dark (demand-brief §3.3: OMCP portal offline by Nov 2025). A blank notebook gives you pages; this gives you the questions.
+- **Why it beats ChatGPT + a notebook:** it's a *structured* 7-day capture workflow (what you learned / built / prompted / what confused you / what proof to save) that works offline on paper or as a local app — no account, no data cost, and the record survives when a program's portal goes dark (demand-brief §3.3: OMCP portal offline by Nov 2025). A blank notebook gives you pages; this gives you the questions.
 
 ### Core — Student Portfolio Pack (sharpened to H2 framing)
 - **New headline positioning:** **"The portfolio evidence OMCP's certificate doesn't give you."**

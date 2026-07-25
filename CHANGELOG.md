@@ -2,6 +2,10 @@
 
 All notable product-facing changes should be documented here before a paid release is published.
 
+## v3.4.3 (2026-07-25)
+
+- Renamed the home-screen card from "The daily ritual" to "The daily workflow" (Learn → Capture → Prove) — clearer and culturally neutral wording; README updated to match. No functional changes.
+
 ## v3.4.2 (2026-07-25)
 
 - Added "The daily ritual: Learn → Capture → Prove" card to the web UI home screen, with links to recommended practice platforms (Coddy.tech, Codédex) and a one-line description of each step. Links are plain recommendations for now; the card carries an inline placeholder for partner links + disclosure text once an affiliate arrangement is approved.
