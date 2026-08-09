@@ -254,7 +254,7 @@ jobs:
         python scripts/build_release.py --version "${{ github.event.release.tag_name }}"
 
     - name: Upload release artifacts
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v3
       with:
         files: |
           dist/ai-learners-journal-kit-${{ github.event.release.tag_name }}.zip
