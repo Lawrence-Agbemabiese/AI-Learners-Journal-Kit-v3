@@ -60,7 +60,7 @@ jobs:
         file-path: './README.md'
 
     - name: Validate markdown format
-      uses: DavidAnson/markdownlint-cli2-action@v20
+      uses: DavidAnson/markdownlint-cli2-action@v24
       with:
         globs: '**/*.md'
 
