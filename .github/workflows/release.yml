@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v10.0.0
+        with:
+          version: latest-known
+          python-version: "3.13"
+          enable-cache: false
+
+      - name: Create release artifacts
+        run: uv run python scripts/build_release.py --version "${{ github.event.release.tag_name }}"
+
+      - name: Upload release artifacts
+        uses: softprops/action-gh-release@v3.0.2
+        with:
+          files: |
+            dist/ai-learners-journal-kit-${{ github.event.release.tag_name }}.zip
+            dist/ai-learners-journal-kit-${{ github.event.release.tag_name }}.tar.gz
+            dist/SHA256SUMS.txt
+            dist/release-manifest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

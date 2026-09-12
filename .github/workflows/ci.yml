@@ -1,265 +1,136 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
-  release:
-    types: [ published ]
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test on ${{ matrix.os }}
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v10.0.0
+        with:
+          version: latest-known
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install locked development dependencies
+        run: uv sync --extra dev --locked
+
+      - name: Lint Python
+        run: uv run ruff check scripts tests
+
+      - name: Check Python formatting
+        run: uvx black==25.11.0 --check --diff scripts tests
+
+      - name: Check shell syntax
+        run: bash -n ai-journal *.command installers/*.command installers/*.sh scripts/*.sh
+
+      - name: Build Python package
+        run: uv build
+
+      - name: Validate customer release package
+        run: uv run python scripts/build_release.py --version ci-smoke --allow-dirty
+
+  tests:
+    name: Tests / Python ${{ matrix.python-version }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-        exclude:
-          # Reduce matrix size for faster CI/CD - test edge cases only on Ubuntu
-          - os: windows-latest
-            python-version: '3.10'
-          - os: windows-latest
-            python-version: '3.11'
-          - os: macos-latest
-            python-version: '3.10'
-          - os: macos-latest
-            python-version: '3.11'
-
+        python-version: ["3.9", "3.13"]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up uv and Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v10.0.0
+        with:
+          version: latest-known
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
-    - name: Verify Python installation
-      run: |
-        python --version
-        python -c "import sys; print('Python executable:', sys.executable)"
+      - name: Install locked development dependencies
+        run: uv sync --extra dev --locked
 
-    - name: Install test dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r requirements-dev.txt
+      - name: Run behavioral tests
+        run: uv run pytest -q
 
-    - name: Test script syntax (Unix)
-      if: runner.os != 'Windows'
-      run: |
-        # Test bash script syntax
-        bash -n ai-journal
-        
-        # Test Python scripts syntax
-        python -m py_compile scripts/*.py
-
-    - name: Test script syntax (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        # Test Python scripts syntax
-        Get-ChildItem scripts/*.py | ForEach-Object { python -m py_compile $_.FullName }
-      shell: powershell
-
-    - name: Run behavioral tests
-      run: pytest -q
-
-    - name: Test installation process (Unix)
-      if: runner.os != 'Windows'
-      run: |
-        # Create temporary directory for testing
-        mkdir -p test-install
-        cd test-install
-        
-        # Copy necessary files
-        cp ../ai-journal .
-        cp -r ../scripts .
-        
-        # Make ai-journal executable
-        chmod +x ai-journal
-        
-        # Test basic functionality (dry run without actual installation)
-        export AI_JOURNAL_DIR="$PWD/test-journal"
-        export AI_JOURNAL_SCRIPTS_DIR="$PWD/scripts"
-        
-        # Test help command
-        ./ai-journal --help
-
-    - name: Test installation process (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        # Create temporary directory for testing
-        New-Item -ItemType Directory -Force -Path test-install
-        Set-Location test-install
-        
-        # Copy necessary files
-        Copy-Item ../scripts . -Recurse
-        
-        # Test Python scripts can be executed
-        $env:AI_JOURNAL_DIR = "$PWD/test-journal"
-        $env:PYTHONPATH = "$PWD/scripts"
-        
-        # Test that scripts can be imported without errors
-        python -c "import sys; sys.path.insert(0, 'scripts'); import entry_saver"
-        python -c "import sys; sys.path.insert(0, 'scripts'); import auto_append"
-        python scripts/journal_cli.py --help
-      shell: powershell
-
-    - name: Validate documentation
-      run: |
-        # Check that important files exist
-        test -f README.md
-        test -f LICENSE
-        test -f CHANGELOG.md
-        test -f SUPPORT.md
-        test -f PRIVACY.md
-        test -f REFUND_POLICY.md
-        test -f SECURITY.md
-        test -f docs/Quick_Start_v3.md
-        test -f docs/Workshop_Facilitator_Guide.md
-        test -f docs/Paid_Product_Checklist.md
-        test -f docs/Release_Checklist.md
-        test -f docs/Release_Notes_v3.0.1.md
-        
-        # Check that README has required sections
-        grep -q "Quick Start" README.md
-        grep -q "Installation" README.md
-        grep -q "Features" README.md
-        grep -q "Workshop Use" README.md
-        grep -q "Paid Product Use" README.md
-        grep -q "Support" README.md
-        grep -q "Privacy" README.md
-        grep -q "License" README.md
-
-    - name: Validate release package build
-      if: runner.os == 'Linux' && matrix.python-version == '3.12'
-      run: |
-        python scripts/build_release.py --version ci-smoke --allow-dirty
-        test -f dist/ai-learners-journal-kit-ci-smoke.zip
-        test -f dist/ai-learners-journal-kit-ci-smoke.tar.gz
-        test -f dist/SHA256SUMS.txt
-        test -f dist/release-manifest.json
-
-  lint:
-    name: Lint Code
+  smoke-install:
+    name: Installed CLI smoke test
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v10.0.0
+        with:
+          version: latest-known
+          python-version: "3.13"
+          enable-cache: true
 
-    - name: Install linting tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
+      - name: Install CLI in an isolated tool environment
+        run: uv tool install .
 
-    - name: Lint Python code with flake8
-      run: |
-        # Stop the build if there are Python syntax errors or undefined names
-        flake8 scripts/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Treat all errors as warnings for now, but show them
-        flake8 scripts/ --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
-
-    - name: Check Python code formatting with black
-      run: |
-        black --check --diff scripts/
-
-    - name: Check import sorting with isort
-      run: |
-        isort --check-only --diff scripts/
-
-    - name: Validate shell script with shellcheck
-      uses: ludeeus/action-shellcheck@master
-      with:
-        scandir: '.'
-        format: gcc
-        severity: warning
-        ignore_paths: |
-          .git
-          .github
-          demo
-          docs
-          visuals
-          promo
+      - name: Run installed CLI
+        run: ai-journal --help
 
   security:
-    name: Security Scan
+    name: Security
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v10.0.0
+        with:
+          version: latest-known
+          python-version: "3.13"
+          enable-cache: true
 
-    - name: Install security tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
+      - name: Install locked development dependencies
+        run: uv sync --extra dev --locked
 
-    - name: Run bandit security scanner
-      run: |
-        echo "=== Running Bandit Security Scan ==="
-        # Run scan for medium and high severity issues only
-        bandit -r scripts/ --severity-level medium -f json -o bandit-medium-high.json --exit-zero
+      - name: Scan Python source
+        run: uvx bandit==1.9.4 -r scripts --severity-level medium
 
-        # Check results
-        ISSUE_COUNT=$(python3 -c "
-        import json
-        try:
-            with open('bandit-medium-high.json', 'r') as f:
-                data = json.load(f)
-            print(len(data['results']))
-        except:
-            print('0')
-        ")
+      - name: Audit runtime dependencies
+        run: uvx pip-audit==2.10.1 -r requirements.txt
 
-        echo "Medium/High severity issues found: $ISSUE_COUNT"
-
-        if [ "$ISSUE_COUNT" -eq "0" ]; then
-          echo "✅ No medium/high severity security issues found"
-          echo "ℹ️ This project may have low-severity warnings which are acceptable"
-        else
-          echo "❌ Found $ISSUE_COUNT medium/high severity security issues!"
-          bandit -r scripts/ --severity-level medium
-          exit 1
-        fi
-
-    - name: Check for known security vulnerabilities
-      run: |
-        pip-audit -r requirements.txt
-
-  release:
-    name: Release
+  gate:
+    name: CI Gate
+    if: ${{ always() }}
+    needs: [quality, tests, smoke-install, security]
     runs-on: ubuntu-latest
-    needs: [test, lint, security]
-    if: github.event_name == 'release'
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Create release artifacts
-      run: |
-        python scripts/build_release.py --version "${{ github.event.release.tag_name }}"
-
-    - name: Upload release artifacts
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          dist/ai-learners-journal-kit-${{ github.event.release.tag_name }}.zip
-          dist/ai-learners-journal-kit-${{ github.event.release.tag_name }}.tar.gz
-          dist/SHA256SUMS.txt
-          dist/release-manifest.json
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Confirm every required job passed
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          TESTS_RESULT: ${{ needs.tests.result }}
+          SMOKE_RESULT: ${{ needs.smoke-install.result }}
+          SECURITY_RESULT: ${{ needs.security.result }}
+        run: |
+          test "$QUALITY_RESULT" = success
+          test "$TESTS_RESULT" = success
+          test "$SMOKE_RESULT" = success
+          test "$SECURITY_RESULT" = success

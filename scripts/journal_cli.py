@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional
 
 from auto_append import append_to_entry, find_entry, get_latest_entry
-from entry_saver import create_entry, get_journal_dir
+from entry_saver import configure_utf8_stdio, create_entry, get_journal_dir
 from entry_saver import load_index as ensure_index
 
 
@@ -320,9 +320,7 @@ def cmd_delete(args: argparse.Namespace) -> None:
             answer = input(prompt).strip()
         except (EOFError, KeyboardInterrupt):
             answer = ""
-        confirmed = (
-            answer == "DELETE" if args.purge else answer.lower().startswith("y")
-        )
+        confirmed = answer == "DELETE" if args.purge else answer.lower().startswith("y")
         if not confirmed:
             print("Nothing was deleted.")
             return
@@ -566,6 +564,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     """Run the CLI."""
+    configure_utf8_stdio()
     parser = build_parser()
     args = parser.parse_args()
     if not hasattr(args, "func"):

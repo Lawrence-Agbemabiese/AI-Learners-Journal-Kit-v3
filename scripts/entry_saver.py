@@ -9,6 +9,14 @@ from datetime import datetime
 from pathlib import Path
 
 
+def configure_utf8_stdio():
+    """Use one predictable encoding for redirected cross-platform CLI output."""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")
+
+
 def get_journal_dir():
     """Get the AI Journal directory path."""
     return Path(os.environ.get("AI_JOURNAL_DIR", Path.home() / "AI-Journal"))
@@ -103,7 +111,11 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
                     "You already have an entry with this name today - saving as",
                     candidate_topic,
                 )
-                topic, slug, entry_path = candidate_topic, candidate_slug, candidate_path
+                topic, slug, entry_path = (
+                    candidate_topic,
+                    candidate_slug,
+                    candidate_path,
+                )
                 break
         else:  # pragma: no cover - 999 same-name entries in one day
             raise RuntimeError(f"Too many entries named '{topic}' today.")
@@ -273,6 +285,7 @@ def create_entry(topic, content=None, tags=None, ai_metadata=None):
 
 def main():
     """Main entry point."""
+    configure_utf8_stdio()
     if len(sys.argv) < 2:
         print("Usage: python entry_saver.py '<topic>' [tags...]")
         print("Example: python entry_saver.py 'Terminal Commands' tmux bash")

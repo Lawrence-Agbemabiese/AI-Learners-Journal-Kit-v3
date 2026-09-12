@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """User-friendly maintenance commands for AI Learner's Journal."""
+
 from __future__ import annotations
 
 import json
@@ -59,7 +60,7 @@ def reindex() -> int:
     except sqlite3.OperationalError as exc:
         print(f"Could not build the fast search database here ({exc}).")
         print("This can happen on network drives or USB sticks.")
-        print("Basic search still works: ai-journal search \"<word>\"")
+        print('Basic search still works: ai-journal search "<word>"')
         return 1
     print(f"Search index rebuilt: {count} entries")
     print(f"Database: {database_path(root)}")
