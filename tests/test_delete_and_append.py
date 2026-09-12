@@ -33,6 +33,7 @@ def run_cli(tmp_path, *args, user_input=None, check=True):
         [sys.executable, str(CLI), *args],
         input=user_input,
         text=True,
+        encoding="utf-8",
         capture_output=True,
         env=env,
         check=False,
@@ -53,7 +54,9 @@ def read_index(tmp_path):
 
 def journal_files(tmp_path):
     entries = tmp_path / "AI-Journal" / "entries"
-    return sorted(str(p.relative_to(tmp_path / "AI-Journal")) for p in entries.rglob("*.md"))
+    return sorted(
+        str(p.relative_to(tmp_path / "AI-Journal")) for p in entries.rglob("*.md")
+    )
 
 
 # --- append targets --------------------------------------------------------
@@ -62,9 +65,7 @@ def journal_files(tmp_path):
 def test_append_today_appends_to_todays_entry(tmp_path):
     run_cli(tmp_path, "new", "Morning study")
     run_cli(tmp_path, "append", "today", "An afternoon thought")
-    path = Path(
-        run_cli(tmp_path, "open", "latest", "--print-path").stdout.strip()
-    )
+    path = Path(run_cli(tmp_path, "open", "latest", "--print-path").stdout.strip())
     assert "An afternoon thought" in path.read_text(encoding="utf-8")
 
 
@@ -95,9 +96,7 @@ def test_append_by_date_target(tmp_path):
     run_cli(tmp_path, "new", "Dated entry")
     today = datetime.now().strftime("%Y-%m-%d")
     run_cli(tmp_path, "append", today, "Found by date")
-    path = Path(
-        run_cli(tmp_path, "open", "latest", "--print-path").stdout.strip()
-    )
+    path = Path(run_cli(tmp_path, "open", "latest", "--print-path").stdout.strip())
     assert "Found by date" in path.read_text(encoding="utf-8")
 
 
@@ -117,9 +116,7 @@ def test_duplicate_topic_same_day_gets_numbered_not_lost(tmp_path):
 def test_unicode_topic_and_content_roundtrip(tmp_path):
     run_cli(tmp_path, "new", "Résumé — čeština & 日本語", "unicode")
     run_cli(tmp_path, "append", "latest", "Emoji note ✨ and accents: café")
-    path = Path(
-        run_cli(tmp_path, "open", "latest", "--print-path").stdout.strip()
-    )
+    path = Path(run_cli(tmp_path, "open", "latest", "--print-path").stdout.strip())
     text = path.read_text(encoding="utf-8")
     assert "café" in text and "✨" in text
     search = run_cli(tmp_path, "search", "café").stdout
@@ -206,7 +203,12 @@ def test_search_index_consistent_after_delete(tmp_path):
 def server(tmp_path, monkeypatch):
     monkeypatch.setenv("AI_JOURNAL_DIR", str(tmp_path / "AI-Journal"))
     monkeypatch.setenv("AI_JOURNAL_CONFIG", str(tmp_path / "ai-config.json"))
-    for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "GROQ_API_KEY"):
+    for key in (
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY",
+        "GROQ_API_KEY",
+    ):
         monkeypatch.delenv(key, raising=False)
     import web_server
 
@@ -313,9 +315,7 @@ def test_web_edit_rejects_empty_body(server):
 
 
 def test_web_edit_unknown_id_is_404(server):
-    status, body = post(
-        server, "/api/entry/update", {"id": 999999, "body": "anything"}
-    )
+    status, body = post(server, "/api/entry/update", {"id": 999999, "body": "anything"})
     assert status == 404
 
 

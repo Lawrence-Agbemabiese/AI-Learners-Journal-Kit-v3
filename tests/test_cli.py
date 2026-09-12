@@ -28,6 +28,7 @@ def run_cli(tmp_path, *args, check=True, env=None):
     result = subprocess.run(
         [sys.executable, str(CLI), *args],
         text=True,
+        encoding="utf-8",
         capture_output=True,
         env=command_env,
         check=False,
@@ -166,6 +167,18 @@ def test_cli_output_is_ascii_safe_for_captured_windows_output(tmp_path):
     assert "Created new entry" in result.stdout
 
 
+def test_cli_reconfigures_redirected_output_as_utf8(tmp_path):
+    result = run_cli(
+        tmp_path,
+        "new",
+        "Résumé — čeština & 日本語",
+        "unicode",
+        env={"PYTHONIOENCODING": "cp1252"},
+    )
+
+    assert "Résumé — čeština & 日本語" in result.stdout
+
+
 def test_release_builder_creates_customer_package():
     version = "pytest-smoke"
     result = subprocess.run(
@@ -222,6 +235,7 @@ def run_cli_with_input(tmp_path, user_input, *args):
         [sys.executable, str(CLI), *args],
         input=user_input,
         text=True,
+        encoding="utf-8",
         capture_output=True,
         env=command_env,
         check=False,

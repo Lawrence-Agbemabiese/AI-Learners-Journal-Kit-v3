@@ -4,6 +4,7 @@
 Markdown remains the source of truth. The database can always be deleted and
 rebuilt from index.json plus the entry files.
 """
+
 from __future__ import annotations
 
 import json
